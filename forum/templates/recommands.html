@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <meta charset="utf-8">
+    <title>Recommands</title>
+  </head>
+  <body>
+  <div class="container"> <!-- start here -->
+  {% if not username %}
+  <span>please <a href = "/login">login</a>/ <a href = "/register">register</a></span>
+  {% else %}
+  <span><a href = "/logout">log out</a></span>
+  {% endif %}
+  <h2>Hi! Wellcome {{ username|default:'Guest' }}</h2>
+
+      <ol class="breadcrumb my-4">
+        <li class="breadcrumb-item"><a href = "{% url 'show_boards' %}">Boards</a></li>
+        <li class="breadcrumb-item"><a href = "{% url 'show_posts' board.id %}">{{ board.name }}</a></li>
+        <li class="breadcrumb-item active">{{ post.title }}</li>
+      </ol>
+  
+    <table border="1">
+    <h3>Artical Title: {{ post.title }}</h3>
+      <thead>
+        <tr>
+            <th>Author</th>
+            <th>Title</th>
+            <th>Content</th>
+            <th>attachment</th>
+            <th>create time</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+            <td>{{ post.user.name }}</td>
+            <td>{{ post.title }}</td>
+            <td>{{ post.content }}</td>
+            <td>
+            {% for file in post.post_files.all %}
+              <span>{{ file.name }}</span><span>(<a href = "/download/{{ file.file_path }}">download</a>)<br></span>
+            {% endfor %}
+            </td>
+            <td>{{ post.created_at}}</td>
+        </tr>
+    <table border="1">
+    <h3>Recommands 請在下面輸入回覆</h3>
+    <form method="post" action="recommands/new" enctype="multipart/form-data">{% csrf_token %}
+    <div>
+      <label>Title</label>
+      <input type="text" name="title">
+    </div>
+    
+    <div>
+      <label>Content</label>
+      <textarea name="content" rows="5"></textarea>
+      
+    </div>
+        <input type="file" name="myfile" multiple>
+    <button type="submit">Post</button>
+  </form>
+        <thead>
+            <tr>
+                <th>Author</th>
+                <th>Title</th>
+                <th>Content</th>
+                <th>attachment</th>
+                <th>update</th>
+                <th>delte recommand</th>
+                <th>create time</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for recommand in recommands %}
+                <tr>
+                    <td>{{ recommand.user.name }}</td>
+                    <td>{{ recommand.title }}</td>
+                    <td>{{ recommand.content }}</td>
+                    {% if recommand.user_id == user_id %}
+                    <td>
+                    {% for file in recommand.recommand_files.all %}
+                    <span>{{ file.name }}</span><span>(<a href = "/download/{{ file.file_path }}">download</a>)(<a href = "/boards/{{post.board_id}}/posts/{{recommand.post_id}}/recommands/{{recommand.id}}/file/{{ file.id }}/delete">delete</a>)<br></span>
+                    {% endfor %}
+                    </td>
+                    {% else %}
+                    <td>
+                    {% for file in recommand.recommand_files.all %}
+                    <span>{{ file.name }}</span><span>(<a href = "/download/{{ file.file_path }}">download</a>)<br></span>
+                    {% endfor %}
+                    </td>
+                    {% endif %}
+                    {% if recommand.user_id == user_id %}
+                    <td>(<a href = "/boards/{{post.board_id}}/posts/{{post.id}}/recommands/{{recommand.id}}/update">update</a>)</td>
+                    {% else %}
+                    <td></td>
+                    {% endif %}
+                    {% if recommand.user_id == user_id %}
+                    <td><span>(<a href = "/boards/{{post.board_id}}/posts/{{post.id}}/recommands/{{recommand.id}}/delete">delete</a>)</span></td>
+                    {% else %}
+                    <td></td>
+                    {% endif %}
+                    <td>{{ recommand.created_at}}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    </tbody>
+    </table>
+    </div> <!-- end here -->
+  </body>
+</html>

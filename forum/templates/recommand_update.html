@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Post update</title>
+  </head>
+  <body>
+    <h1>Post update</h1>
+     <form method="post" action="/boards/{{ board_id }}/posts/{{ post_id }}/recommands/{{ recommand_id }}/update">{% csrf_token %}
+    <div>
+      <label>Title</label>
+      <input type="text" name="title">
+    </div>
+    
+    
+    <div>
+      <label>Content</label>
+      <textarea name="content" rows="5"></textarea>
+    </div>
+    <button type="submit">Post</button>
+  </form>
+  </body>
+</html>

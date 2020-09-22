@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <meta charset="utf-8">
+    <title>Posts</title>
+  </head>
+  <body>
+  <div class="container"> <!--start here -->
+  {% if not username %}
+  <span>please <a href = "/login">login</a>/ <a href = "/register">register</a></span>
+  {% else %}
+  <span><a href = "/logout">log out</a></span>
+  {% endif %}
+  <h2>Hi! Wellcome {{ username|default:'Guest' }}</h2>
+    
+      <ol class="breadcrumb my-4">
+        <li class="breadcrumb-item"><a href = "{% url 'show_boards' %}">Boards</a></li>
+        <li class="breadcrumb-item active">{{ board.name }}</li>
+      </ol>
+    
+     <form method="post" action="posts/new" enctype="multipart/form-data">{% csrf_token %}
+    <div>
+      <label>Title</label>
+      <input type="text" name="title">
+    </div>
+    
+    
+    <div>
+      <label>Content</label>
+      <textarea name="content" rows="5"></textarea>
+    </div>
+        <input type="file" name="myfile" multiple>
+    <button type="submit">Post</button>
+  </form>
+    <table border="1">
+      <thead>
+        <tr>
+        <th>Author</th>
+        <th>Title</th>
+        <th>content</th>
+        <th>attachment</th>
+        <th>update</th>
+        <th>delte post</th>
+        <th>create time</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for post in posts %}
+        <tr>
+            <td>{{ post.user.name }}</td>
+            <td><a href = "posts/{{ post.id }}/recommands">{{ post.title }}</td>
+            <td>{{ post.content }}</td>
+            {% if post.user_id == user_id %}
+            <td>
+            {% for file in post.post_files.all %}
+                <span>{{ file.name }}</span><span>(<a href = "/download/{{ file.file_path }}">download</a>)(<a href = "/boards/{{post.board_id}}/posts/{{post.id}}/delete">delete</a>)<br></span>
+            {% endfor %}
+            </td>
+            {% else %}
+            <td>
+            {% for file in post.post_files.all %}
+                <span>{{ file.name }}</span><span>(<a href = "/download/{{ file.file_path }}">download</a>)<br></span>
+            {% endfor %}
+            </td>
+            {% endif %}
+            {% if post.user_id == user_id %}
+            <td>(<a href = "/boards/{{post.board_id}}/posts/{{post.id}}/update">update</a>)</td>
+            {% else %}
+            <td></td>
+            {% endif %}
+            {% if post.user_id == user_id %}
+            <td><span>(<a href = "/boards/{{post.board_id}}/posts/{{post.id}}/delete">delete</a>)</span></td>
+            {% else %}
+            <td></td>
+            {% endif %}
+            <td>{{ post.created_at}}</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+    </table>
+    </div> <!-- end here -->
+  </body>
+</html>
