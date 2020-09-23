@@ -1,6 +1,6 @@
 from django.db import models
 from django.utils import timezone, dateformat
-from forum.managers import CustomOrderManager
+from forum.managers import CustomManager
 
 class Boards(models.Model):
     name = models.CharField(max_length=30, unique=True)
@@ -19,7 +19,8 @@ class Posts(models.Model):
     updated_at = models.DateTimeField(null=True)
     other = models.CharField(max_length=100, default= "stuff")
     pref = models.CharField(max_length=2, default= "N")
-    objects = CustomOrderManager()
+    objects = CustomManager()
+    category = models.CharField(max_length=255, default= 'null')
     
     def __str__(self):
         return self.title

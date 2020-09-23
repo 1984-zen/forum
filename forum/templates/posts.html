@@ -25,6 +25,12 @@
   <input type="radio" name="on_top_status" value="N" id="status_no" Checked><label for="status_no">非置頂</label>
   <input type="radio" name="on_top_status" value="Y" id="status_yes"><label for="status_yes">置頂</label>
   </fieldset>
+  <label for="category">Choose a Category:</label>
+  <select name="category" id="category">
+    <option value="null">None</option>
+    <option value="medical">Medical</option>
+    <option value="others">Others</option>
+  </select>
     <div>
       <label>Title</label>
       <input type="text" name="title">
@@ -42,6 +48,7 @@
       <thead>
         <tr>
         <th>Status</th>
+        <th>Category</th>
         <th>Author</th>
         <th>Title</th>
         <th>content</th>
@@ -53,11 +60,17 @@
       </thead>
       <tbody>
       {% for post in posts %}
-        <tr>
+      
+        <tr style="background-color:{{ post.category_color_code }}">
             {% if post.pref == "Y" %}
             <td>置頂</td>
             {% else %}
             <td></td>
+            {% endif %}
+            {% if post.category == "null" %}
+            <td></td>
+            {% else %}
+            <td>{{ post.category }}</td>
             {% endif %}
             <td>{{ post.user.name }}</td>
             <td><a href = "posts/{{ post.id }}/recommands">{{ post.title }}</td>
