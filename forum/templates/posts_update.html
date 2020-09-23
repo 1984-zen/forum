@@ -1,12 +1,19 @@
 <!DOCTYPE html>
 <html>
   <head>
+   {% load static %}
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
     <meta charset="utf-8">
     <title>Post update</title>
   </head>
   <body>
-    <h1>Post update</h1>
+  <div class="container"> <!--start here -->
+    <h1>Post Update</h1>
      <form method="post" action="/boards/{{ board_id }}/posts/{{ post_id }}/update">{% csrf_token %}
+    <fieldset id="on_top_status">   
+    <input type="radio" name="on_top_status" value="N" id="status_no" Checked><label for="status_no">非置頂</label>
+    <input type="radio" name="on_top_status" value="Y" id="status_yes"><label for="status_yes">置頂</label>
+    </fieldset>
     <div>
       <label>Title</label>
       <input type="text" name="title">
@@ -19,5 +26,6 @@
     </div>
     <button type="submit">Post</button>
   </form>
+  </div> <!-- end here -->
   </body>
 </html>

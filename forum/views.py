@@ -20,7 +20,7 @@ def show_boards(request):
 
 def show_posts(request, board_id):
     board = Boards.objects.get(id = board_id)
-    posts = board.posts.all().order_by('-created_at')
+    posts = board.posts.preferred_order().filter(other="stuff")
     user_id = request.session.get('user_id')
     has_user = Users.objects.filter(id = user_id).count()
     if(has_user):
@@ -33,8 +33,9 @@ def show_posts(request, board_id):
 def new_post(request, board_id):
     title = request.POST.get("title")
     content = request.POST.get("content")
+    is_on_top = request.POST.get("on_top_status")
     user_id = request.session.get('user_id')
-    create_post = Posts(title = title, content = content, board_id = board_id, user_id = user_id)
+    create_post = Posts(title = title, content = content, board_id = board_id, user_id = user_id, other = "stuff", pref = is_on_top)
     create_post.save()
     files = request.FILES.getlist('myfile')
     if(files):
@@ -106,7 +107,8 @@ def update_post(request, board_id, post_id):
     if(request.method == 'POST'):
         title = request.POST.get("title")
         content = request.POST.get("content")
-        Posts.objects.filter(id = post_id).update(title = title, content = content)
+        is_on_top = request.POST.get("on_top_status")
+        Posts.objects.filter(id = post_id).update(title = title, content = content, pref = is_on_top)
         return HttpResponseRedirect(reverse("show_posts", kwargs={"board_id": board_id}))
     return render(request, 'posts_update.html', {'board_id': board_id, 'post_id': post_id})
 def delete_recommand(request, board_id, post_id, recommand_id):
