@@ -6,6 +6,7 @@ from django.urls import reverse
 import datetime
 import os
 from django.http import FileResponse
+from django.db.utils import DatabaseError,IntegrityError
 
 def show_boards(request):
     boards = Boards.objects.all().order_by('-created_at')
@@ -36,21 +37,26 @@ def show_posts(request, board_id):
     return render(request, 'posts.html', {'posts': posts, 'board_id': board_id, 'user_id': user_id, 'board': board, 'username': username, 'categorys': categorys})
 
 def new_post(request, board_id):
-    title = request.POST.get("title")
-    content = request.POST.get("content")
-    is_on_top = request.POST.get("on_top_status")
-    category = request.POST.get("category")
-    user_id = request.session.get('user_id')
-    create_post = Posts(title = title, content = content, board_id = board_id, user_id = user_id, other = "stuff", pref = is_on_top, category = category)
-    create_post.save()
-    files = request.FILES.getlist('myfile')
-    if(files):
-        for file in files:
-            fname, file_relative_path = handle_uploaded_file(file)
-            create_file_path = Post_files(name = fname, file_path = file_relative_path, post_id = create_post.id)#拿取剛建立完的create_post.id
-            create_file_path.save()
-    return HttpResponseRedirect(reverse("show_posts", kwargs={"board_id": board_id}))
+    try:
+        title = request.POST.get("title")
+        content = request.POST.get("content")
+        is_on_top = request.POST.get("on_top_status")
+        category = request.POST.get("category")
+        user_id = request.session.get('user_id')
+        create_post = Posts(title = title, content = content, board_id = board_id, user_id = user_id, other = "stuff", pref = is_on_top, category = category)
+        create_post.save()
+        files = request.FILES.getlist('myfile')
+        if(files):
+            for file in files:
+                fname, file_relative_path = handle_uploaded_file(file)
+                create_file_path = Post_files(name = fname, file_path = file_relative_path, post_id = create_post.id)#拿取剛建立完的create_post.id
+                create_file_path.save()
+        return HttpResponseRedirect(reverse("show_posts", kwargs={"board_id": board_id}))
     
+    except IntegrityError:
+        return HttpResponseRedirect(reverse("show_posts", kwargs={"board_id": board_id}))
+       
+        
 def handle_uploaded_file(f):
     today = str(datetime.date.today())
     file_relative_path = today + '_' + f.name

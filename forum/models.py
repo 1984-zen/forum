@@ -11,7 +11,7 @@ class Boards(models.Model):
         return self.name
     
 class Posts(models.Model):
-    title = models.CharField(max_length=30, unique=True)
+    title = models.CharField(max_length=255, unique=True)
     content = models.CharField(max_length=255)
     board = models.ForeignKey(Boards, on_delete=models.CASCADE, related_name='posts')
     user = models.ForeignKey('accounts.Users', on_delete=models.CASCADE, related_name='posts')
@@ -36,7 +36,7 @@ class Post_files(models.Model):
         return self.name
     
 class Recommands(models.Model):
-    title = models.CharField(max_length=30, unique=True)
+    title = models.CharField(max_length=255)
     content = models.CharField(max_length=255)
     post = models.ForeignKey(Posts, on_delete=models.CASCADE, related_name='recommands')
     user = models.ForeignKey('accounts.Users', on_delete=models.CASCADE)
