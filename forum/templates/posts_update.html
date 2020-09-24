@@ -10,9 +10,14 @@
   <div class="container"> <!--start here -->
     <h1>Post Update</h1>
      <form method="post" action="/boards/{{ board_id }}/posts/{{ post_id }}/update">{% csrf_token %}
-    <fieldset id="on_top_status">   
+    <fieldset id="on_top_status">
+     {% if post.pref == "Y" %}
+    <input type="radio" name="on_top_status" value="N" id="status_no"><label for="status_no">非置頂</label>
+    <input type="radio" name="on_top_status" value="Y" id="status_yes" Checked><label for="status_yes">置頂</label>
+    {% else %}
     <input type="radio" name="on_top_status" value="N" id="status_no" Checked><label for="status_no">非置頂</label>
     <input type="radio" name="on_top_status" value="Y" id="status_yes"><label for="status_yes">置頂</label>
+    {% endif %}
     </fieldset>
     <label for="category">Choose a Category:</label>
   <select name="category" id="category">
@@ -22,13 +27,13 @@
   </select>
     <div>
       <label>Title</label>
-      <input type="text" name="title">
+      <input type="text" name="title" value="{{ title }}">
     </div>
     
     
     <div>
       <label>Content</label>
-      <textarea name="content" rows="5"></textarea>
+      <textarea name="content" rows="5" >{{ content }}</textarea>
     </div>
     <button type="submit">Post</button>
   </form>

@@ -116,6 +116,9 @@ def delete_post_file(request, board_id, post_id, file_id):
     return HttpResponseRedirect(reverse("show_posts", kwargs={"board_id": board_id}))
 
 def update_post(request, board_id, post_id):
+    post = Posts.objects.get(id = post_id)
+    title = post.title
+    content = post.content
     if(request.method == 'POST'):
         title = request.POST.get("title")
         content = request.POST.get("content")
@@ -123,15 +126,18 @@ def update_post(request, board_id, post_id):
         category = request.POST.get("category")
         Posts.objects.filter(id = post_id).update(title = title, content = content, pref = is_on_top, category = category)
         return HttpResponseRedirect(reverse("show_posts", kwargs={"board_id": board_id}))
-    return render(request, 'posts_update.html', {'board_id': board_id, 'post_id': post_id})
+    return render(request, 'posts_update.html', {'board_id': board_id, 'post_id': post_id, 'title': title, 'content': content, 'post': post})
 def delete_recommand(request, board_id, post_id, recommand_id):
     recommand = Recommands.objects.get(id = recommand_id)
     recommand.delete()
     return HttpResponseRedirect(reverse("show_recommands", kwargs={"board_id": board_id, "post_id": post_id}))
 def update_recommand(request, board_id, post_id, recommand_id):
+    Recommand = Recommands.objects.get(id = recommand_id)
+    title = Recommand.title
+    content = Recommand.content
     if(request.method == 'POST'):
         title = request.POST.get("title")
         content = request.POST.get("content")
         Recommands.objects.filter(id = recommand_id).update(title = title, content = content)
         return HttpResponseRedirect(reverse("show_recommands", kwargs={"board_id": board_id, "post_id": post_id}))
-    return render(request, 'recommand_update.html', {'board_id': board_id, 'post_id': post_id, 'recommand_id': recommand_id})
+    return render(request, 'recommand_update.html', {'board_id': board_id, 'post_id': post_id, 'recommand_id': recommand_id, 'title': title, 'content': content})
