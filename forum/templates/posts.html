@@ -8,6 +8,8 @@
   </head>
   <body>
   <div class="container"> <!--start here -->
+  <img src="{% static "img/post_img.jpg" %}" width="1024" height="509">
+  <br>
   {% if not username %}
   <span>please <a href = "/login">login</a>/ <a href = "/register">register</a></span>
   {% else %}
