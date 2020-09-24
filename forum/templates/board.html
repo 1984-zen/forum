@@ -14,18 +14,16 @@
       </ol>
   
     {% if not username %}
-    <span>please <a href = "/login">login</a>/ <a href = "/register">register</a></span>
+    <span>please <a href = "/login">login</a><!--/ <a href = "/register">register</a> --></span>
     {% else %}
     <span><a href = "/logout">log out</a></span>
     {% endif %}
     <h2>Hi! Wellcome {{ username|default:'Guest' }}</h2><br>
-    <table border="1">
+    <table style="width:100%;" border="1">
       <thead>
         <tr>
           <th>Board</th>
           <th>Posts</th>
-          <th>Topics</th>
-          <th>Last Post</th>
         </tr>
       </thead>
       <tbody>
@@ -35,9 +33,7 @@
             <a href="/boards/{{ board.id }}/posts" >{{ board.name }}</a><br>
              <!-- <small style="color: #888">{{ board.description }}</small>-->
             </td>
-            <td>0</td>
-            <td>0</td>
-            <td></td>
+            <td>{{ count_posts }}</td>
           </tr>
         {% endfor %}
       </tbody>

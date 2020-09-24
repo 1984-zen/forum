@@ -9,7 +9,7 @@
   <body>
   <div class="container"> <!-- start here -->
   {% if not username %}
-  <span>please <a href = "/login">login</a>/ <a href = "/register">register</a></span>
+  <span>please <a href = "/login">login</a><!--/ <a href = "/register">register</a> --></span>
   {% else %}
   <span><a href = "/logout">log out</a></span>
   {% endif %}
@@ -21,8 +21,8 @@
         <li class="breadcrumb-item active">{{ post.title }}</li>
       </ol>
   
-    <table border="1">
-    <h3>Artical Title: {{ post.title }}</h3>
+    <table style="width:100%;" border="1">
+    <span><b>Artical Title: {{ post.title }}</b></span>
       <thead>
         <tr>
             <th>Author</th>
@@ -44,22 +44,28 @@
             </td>
             <td>{{ post.created_at}}</td>
         </tr>
-    <table border="1">
-    <h3>Recommands 請在下面輸入回覆</h3>
+        
+        </tbody>
+    </table>
+    <br><br>
+    <h5><b>請在下面輸入回覆</b></h5>
     <form method="post" action="recommands/new" enctype="multipart/form-data">{% csrf_token %}
     <div>
-      <label>Title</label>
-      <input type="text" name="title">
+      <label><b>Title</b></label>
+      <input style="width:100%;" type="text" name="title">
     </div>
     
     <div>
-      <label>Content</label>
-      <textarea name="content" rows="5"></textarea>
-      
+      <label><b>Content</b></label>
+      <textarea style="width:100%;" name="content" rows="5"></textarea>
     </div>
         <input type="file" name="myfile" multiple>
     <button type="submit">Post</button>
   </form>
+   <br>
+    <table style="width:100%;" border="1">
+    
+ 
         <thead>
             <tr>
                 <th>Author</th>
@@ -103,8 +109,7 @@
                     <td>{{ recommand.created_at}}</td>
                 </tr>
             {% endfor %}
-        </tbody>
-    </table>
+        
 
     </tbody>
     </table>

@@ -10,6 +10,7 @@ from django.db.utils import DatabaseError,IntegrityError
 
 def show_boards(request):
     boards = Boards.objects.all().order_by('-created_at')
+    count_posts = Posts.objects.all().count()
     user_id = request.session.get('user_id')
     has_user = Users.objects.filter(id = user_id).count()
     if(has_user):
@@ -17,7 +18,7 @@ def show_boards(request):
         username = user.name
     else:
         username = ""
-    return render(request, 'board.html', {'boards': boards, 'user_id': user_id, 'username': username})
+    return render(request, 'board.html', {'boards': boards, 'user_id': user_id, 'username': username, 'count_posts': count_posts})
 
 def show_posts(request, board_id):
     board = Boards.objects.get(id = board_id)

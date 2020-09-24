@@ -38,6 +38,7 @@ def login_post(request):
                 request.session['user_id'] = user.id
                 return HttpResponseRedirect(reverse("show_boards"))
         else:
+            
             return HttpResponseRedirect(reverse("login"))
     return render(request, 'login.html')
 

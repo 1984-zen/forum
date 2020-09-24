@@ -11,14 +11,13 @@
     <h1>Post update</h1>
      <form method="post" action="/boards/{{ board_id }}/posts/{{ post_id }}/recommands/{{ recommand_id }}/update">{% csrf_token %}
     <div>
-      <label>Title</label>
-      <input type="text" name="title" value="{{ title }}">
+      <label><b>Title</b></label>
+      <input style="width:100%;" type="text" name="title" value="{{ title }}">
     </div>
     
-    
     <div>
-      <label>Content</label>
-      <textarea name="content" rows="5">{{ content }}</textarea>
+      <label><b>Content</b></label>
+      <textarea style="width:100%;" name="content" rows="5">{{ content }}</textarea>
     </div>
     <button type="submit">Post</button>
   </form>

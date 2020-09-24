@@ -11,7 +11,7 @@
   <img src="{% static "img/post_img.jpg" %}" width="1024" height="509">
   <br>
   {% if not username %}
-  <span>please <a href = "/login">login</a>/ <a href = "/register">register</a></span>
+  <span>please <a href = "/login">login</a><!--/ <a href = "/register">register</a> --></span>
   {% else %}
   <span><a href = "/logout">log out</a></span>
   {% endif %}
@@ -24,29 +24,30 @@
     
      <form method="post" action="posts/new" enctype="multipart/form-data">{% csrf_token %}
      <fieldset id="on_top_status">   
-  <input type="radio" name="on_top_status" value="N" id="status_no" Checked><label for="status_no">非置頂</label>
-  <input type="radio" name="on_top_status" value="Y" id="status_yes"><label for="status_yes">置頂</label>
+  <input type="radio" name="on_top_status" value="N" id="status_no" Checked><label for="status_no"><b>非置頂</b></label>
+  <input type="radio" name="on_top_status" value="Y" id="status_yes"><label for="status_yes"><b>置頂</b></label>
   </fieldset>
-  <label for="category">Choose a Category:</label>
+  <label for="category"><b>Choose a Category:</b></label>
   <select name="category" id="category">
     <option value="null">None</option>
     <option value="medical">Medical</option>
     <option value="others">Others</option>
   </select>
     <div>
-      <label>Title</label>
-      <input type="text" name="title">
+      <label><b>Title:</b></label>
+      <input style="width:100%;" type="text" name="title">
     </div>
     
     
     <div>
-      <label>Content</label>
-      <textarea name="content" rows="5"></textarea>
+      <label><b>Content:</b></label>
+      <textarea style="width:100%;" name="content" rows="5"></textarea>
     </div>
         <input type="file" name="myfile" multiple>
     <button type="submit">Post</button>
   </form>
-    <table border="1">
+  <br><br>
+    <table  style="width:100%;" border="1">
       <thead>
         <tr>
         <th>Status</th>
