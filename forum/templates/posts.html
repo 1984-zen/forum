@@ -81,7 +81,7 @@
             {% if post.user_id == user_id %}
             <td>
             {% for file in post.post_files.all %}
-                <span>{{ file.name }}</span><span>(<a href = "/download/{{ file.file_path }}">download</a>)(<a href = "/boards/{{post.board_id}}/posts/{{post.id}}/delete">delete</a>)<br></span>
+                <span>{{ file.name }}</span><span>(<a href = "/download/{{ file.file_path }}">download</a>)(<a href = "/boards/{{post.board_id}}/posts/{{post.id}}/file/{{file.id}}/delete">delete</a>)<br></span>
             {% endfor %}
             </td>
             {% else %}
