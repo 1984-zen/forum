@@ -4,7 +4,6 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib import messages
-# from django.core.exceptions import ObjectDoesNotExist
 
 def register(request):
     if(request.method == 'POST'):

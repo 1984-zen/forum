@@ -37,7 +37,11 @@
       <label><b>Title:</b></label>
       <input style="width:100%;" type="text" name="title">
     </div>
-    
+    <ul class="messages">
+      {% for message in messages %}
+      <li style="color: red">{{ message }}</li>
+      {% endfor %}
+    </ul>
     
     <div>
       <label><b>Content:</b></label>
