@@ -3,6 +3,8 @@ from accounts.models import Users
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.contrib.auth.hashers import make_password, check_password
+from django.contrib import messages
+# from django.core.exceptions import ObjectDoesNotExist
 
 def register(request):
     if(request.method == 'POST'):
@@ -29,16 +31,20 @@ def login(request):
 
 def login_post(request):
     if(request.method == 'POST'):
-        account = request.POST.get("account")
-        password = request.POST.get("password")
-        has_user = Users.objects.filter(account = account).count()
-        if(has_user):
+        try:
+            account = request.POST.get("account")
+            password = request.POST.get("password")
+            Users.objects.get(account = account)
+        except Users.DoesNotExist:
+            messages.error(request, "account or password is wrong!")
+            return HttpResponseRedirect(reverse("login"))
+        else:
             user = Users.objects.get(account = account)
             if(check_password(password, user.password)):
                 request.session['user_id'] = user.id
                 return HttpResponseRedirect(reverse("show_boards"))
-        else:
-            
+            else:
+                messages.error(request, "account or password is wrong!")
             return HttpResponseRedirect(reverse("login"))
     return render(request, 'login.html')
 

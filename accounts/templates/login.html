@@ -23,6 +23,11 @@
         <br>
     <button type="submit">send</button>
   </form>
+  <ul class="messages">
+  {% for message in messages %}
+  <li style="color: red">{{ message }}</li>
+  {% endfor %}
+</ul>
   <!--<span>or <a href = "/register">Register</a></span>-->
   </div> <!-- end here -->
   </body>
