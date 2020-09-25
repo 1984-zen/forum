@@ -49,4 +49,4 @@ def login_post(request):
 
 def logout(request):
     del request.session['user_id']
-    return render(request, 'login.html')
+    return HttpResponseRedirect(reverse("login"))
