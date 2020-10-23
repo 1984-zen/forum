@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+  <script src="{% static 'jquery/jquery-3.5.1.min.js' %}"></script>
+
+  <title>Exam List</title>
+</head>
+
+<body>
+  <div class="container">
+    <!-- start here -->
+
+    <!-- <img src="{% static "img/board_img.jpg" %}" width="1024" height="576">
+      <ol class="breadcrumb my-4">
+        <li class="breadcrumb-item">Boards</li>
+      </ol> -->
+
+    {% if not username %}
+    <span>please <a href="/login">login</a>
+      <!--/ <a href = "/register">register</a> --></span>
+    {% else %}
+    <span><a href="/logout">log out</a></span>
+    {% endif %}
+    <h2>Hi! Wellcome {{ username|default:'Guest' }}</h2>
+    <br>
+    <a href="/exams/new"><button>Create a new exam</button></a>
+ 
+    <br><br>
+
+
+    <table style="width:100%;" border="1">
+      <thead>
+        <tr>
+          <th>Exam Lists</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for exam in exam_list %}
+        <tr>
+          <td>
+            {{ exam.name }}(<a href="/exams/{{ exam.id }}/users">查看考生結果</a>, <a href="/exams/new/{{ exam.id }}">更新考題</a>))</a><br>
+            <!-- <small style="color: #888">{{ board.description }}</small>-->
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div> <!-- end here -->
+</body>
+</html>

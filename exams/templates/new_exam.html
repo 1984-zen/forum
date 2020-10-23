@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <script src="{% static 'jquery/jquery-3.5.1.min.js' %}"></script>
+
+    <title>Exams</title>
+</head>
+
+<body>
+    <div class="container">
+        <!-- start here -->
+
+        <!-- <img src="{% static "img/board_img.jpg" %}" width="1024" height="576">
+      <ol class="breadcrumb my-4">
+        <li class="breadcrumb-item">Boards</li>
+      </ol> -->
+
+        {% if not username %}
+        <span>please <a href="/login">login</a>
+            <!--/ <a href = "/register">register</a> --></span>
+        {% else %}
+        <span><a href="/logout">log out</a></span>
+        {% endif %}
+        <h2>Hi! Wellcome {{ username|default:'Guest' }}</h2><br>
+        <!-- <form method="post" action="/exams/new" enctype="multipart/form-data">{% csrf_token %} -->
+        <label><b>Exam Title:</b></label>
+        <textarea style="width:100%;" id="exam_title" rows="1"></textarea>
+        <label><b>Question-1:</b></label>
+        <textarea style="width:100%;" id="question" rows="5"></textarea>
+
+        <div class="form-contacts-container">
+            <div class="form-contact" id="form-contact-1">
+                <input type="checkbox" id=0 placeholder="answer">
+                <input type="text" option-tag-id="" placeholder="option">
+            </div>
+            <!-- We'll be adding additional inputs here -->
+        </div>
+        <div class="form-contacts-add">
+            <input type="button" value="Add More Options" id="add-options">
+        </div>
+        <!-- </form> -->
+        <button type="submit" id="submit-exam">Create</button>
+
+        <br><br>
+
+        <table style="width:100%;" border="1">
+            <thead>
+                <tr>
+                    <th>Exam Titles</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for exam in exams %}
+                <tr>
+                    <td>
+                        <a href="/boards/{{ board.id }}/posts">{{ exam.name }}</a><br>
+                        <!-- <small style="color: #888">{{ board.description }}</small>-->
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div> <!-- end here -->
+</body>
+
+<script type="text/javascript">
+    let total = 0; //預設
+    let answerList = ['False'];
+    let optionList = [];
+
+    $(document).on('click', '#submit-exam', function (e) {
+        e.preventDefault();
+        $("[option-tag-id]").each(function () { //拿到所有的options[]
+            if ($(this).val()) {
+                optionList.push($(this).val());
+            }
+        });
+        $.ajaxSetup({
+            headers: { "X-CSRFToken": '{{csrf_token}}' }
+        });
+        $.ajax({
+            url: "http://127.0.0.1:8000/exams/new/answers-options",
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({
+                exam_id: "",
+                answer_list: answerList,
+                option_list: optionList,
+                question: $("#question").val(),
+                exam_title: $("#exam_title").val()
+
+            }),
+            success: function (data) {
+                window.location.href = '/exams/new/'+ data.exam_id;
+            }
+        });
+    })
+
+    $(document).on('click', '#add-options', function (e) {
+        e.preventDefault();
+        var addBlockId = total = total + 1;
+        answerList.push('False');
+        var addBlock = document.createElement('div');
+        $(addBlock).addClass('form-contact');
+        $(addBlock).attr('id', 'form-contact-' + addBlockId);
+        var inputName3 = document.createElement('input');
+        $(inputName3).attr('type', 'checkbox');
+        $(inputName3).attr('id', addBlockId);
+        $(inputName3).attr('placeholder', 'answer');
+        $(inputName3).appendTo($(addBlock));
+        var inputName = document.createElement('input');
+        $(inputName).attr('type', 'text');
+        $(inputName).attr('option-tag-id', '');
+        $(inputName).attr('placeholder', 'option');
+        $(inputName).appendTo($(addBlock));
+        $(addBlock).appendTo($('.form-contacts-container'));
+        $('#contacts').val(total);
+
+    });
+
+    $(document).on('change', function () {
+        $("input:checkbox").each(function () {
+            if ($(this).is(":checked")) {
+                answerList[$(this).prop("id")] = 'True'
+                // alert(answerList)
+            } else {
+                answerList[$(this).prop("id")] = 'False'
+                // alert(answerList)
+            }
+        })
+    })
+</script>
+
+</html>
