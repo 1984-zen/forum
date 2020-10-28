@@ -26,20 +26,10 @@ def show_exam_list(request):
 def show_exam_user_list(request, exam_id):
     exam_id = exam_id
     user_ids = Option_Users.objects.filter(exam_id = exam_id).values('user_id').distinct()
-    # print(user_ids)
     # exams = Users.objects.filter(id__in=user_ids).prefetch_related('option_users')
-    # print(exams)
     # users = Users.objects.prefetch_related('option_users').all()
     users = Users.objects.prefetch_related('option_users').filter(id__in=user_ids)
-
-    print(users)
-    
-    # user_ids = Option_Users.objects.filter(exam_id = exam_id).values('user_id').distinct()
-    # for user in user_ids:
-    #     print(user['user_id'])
-
     return render(request, 'exam_user_list.html', {'users': users, 'exam_id': exam_id})
-
 
 def new_exam(request):
     user_id = request.session.get('user_id')
@@ -94,7 +84,7 @@ def add_exam_questions(request, exam_id):
     questions = exam.questions.all()
     return render(request, 'add_exam_questions.html', {'exam_id': exam_id, 'username': username, 'exam': exam, 'questions': questions})
 
-def user_enter_exam(request, exam_id):
+def show_exam(request, exam_id):
     user_id = request.session.get('user_id')
     has_user = Users.objects.filter(id = user_id).count()
     if(has_user):
@@ -104,7 +94,7 @@ def user_enter_exam(request, exam_id):
         username = ""
     exam = Exams.objects.get(id = exam_id)
     questions = exam.questions.all()
-    return render(request, 'user_enter_exam.html', {'exam_id': exam_id, 'username': username, 'exam': exam, 'exam_id': exam_id, 'questions': questions})
+    return render(request, 'show_exam.html', {'exam_id': exam_id, 'username': username, 'exam': exam, 'exam_id': exam_id, 'questions': questions})
 
 def user_answers(request, exam_id):
     user_id = request.session.get('user_id')
@@ -121,3 +111,12 @@ def user_answers(request, exam_id):
         create_option_users = Option_Users(user_id = user_id, option_id = option_id, question_id = question_id, exam_id = exam_id)
         create_option_users.save()
     return HttpResponse("Test result has been sent successfully.")
+
+def show_user_exam_result(request, exam_id, user_id):
+    username = Users.objects.get(id = user_id)
+    questions = Questions.objects.filter(exam_id = exam_id)
+    user_answers = Option_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id)
+    user_answer_list = []
+    for user in user_answers:
+        user_answer_list.append(user.option_id)
+    return render(request, 'show_user_exam_result.html', {'username': username, 'questions': questions, 'user_answer_list': user_answer_list})

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <script src="{% static 'jquery/jquery-3.5.1.min.js' %}"></script>
+
+    <title>Exam Result</title>
+</head>
+
+<body>
+
+    <!-- <img src="{% static "img/board_img.jpg" %}" width="1024" height="576">
+      <ol class="breadcrumb my-4">
+        <li class="breadcrumb-item">Boards</li>
+      </ol> -->
+
+    {% if not username %}
+    <span>please <a href="/login">login</a>
+        <!--/ <a href = "/register">register</a> --></span>
+    {% else %}
+    <span><a href="/logout">log out</a></span>
+    {% endif %}
+    <h2>Hi! Wellcome {{ username|default:'Guest' }}</h2><br>
+
+    <br><br>
+
+    <p>左邊是"學生回答，右邊是"正確解答"</p>
+
+    <h3 class="sub-header">考生姓名: {{ username }}</h3>
+
+    {% for q in questions %}
+    <div class="row">
+        <div class="table-responsive col-md-6">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th class="col-md-2" style="color:blue">Question: {{ q.question }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in q.options.all %}
+                    <tr>
+                        {% if o.id in user_answer_list %}
+                        <td class="col-md-2" option_id={{ o.id }} style="color:red;">{{ o.option }}</td>
+                        {% else %}
+                        <td class="col-md-2" option_id={{ o.id }}>{{ o.option }}</td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="table-responsive col-md-6">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th class="col-md-2" style="color:blue">Question: {{ q.question }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for o in q.options.all %}
+                    <tr>
+                        {% if o.is_answer == 1 %}
+                        <td class="col-md-2" option_id={{ o.id }} style="color:red;">{{ o.option }}</td>
+                        {% else %}
+                        <td class="col-md-2" option_id={{ o.id }}>{{ o.option }}</td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endfor %}
+
+    <br>
+
+</body>
+
+</html>
