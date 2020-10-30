@@ -11,11 +11,6 @@
 </head>
 
 <body>
-
-
-
-
-
     <div class="container">
         <!-- start here -->
 
@@ -31,9 +26,6 @@
         <span><a href="/logout">log out</a></span>
         {% endif %}
         <h2>Hi! Wellcome {{ username|default:'Guest' }}</h2><br>
-
-
-
 
         <table style="width:100%">
             <thead>
@@ -61,6 +53,7 @@
                             <!-- <small style="color: #888">{{ board.description }}</small>-->
                             {% if videos %}
                             {% for v in videos %}
+                            {% if v.question_id == q.id %}
                             <video width='400' controls>
                                 <source src="{{ MEDIA_URL }}{{ v.file_path }}" type='video/mp4'>
                                 </source>
@@ -69,6 +62,18 @@
 
                             <br>
 
+                            {% endif %}
+                            {% endfor %}
+                            {% endif %}
+
+                            {% if images %}
+                            {% for i in images %}
+                            {% if i.question_id == q.id %}
+                            <img src="{{ MEDIA_URL }}{{ i.file_path }}" width='400'>
+
+                            <br>
+
+                            {% endif %}
                             {% endfor %}
                             {% endif %}
                         </td>
@@ -79,7 +84,8 @@
                         </td>
                         <td>
                             {% for o in q.options.all %}
-                            <input type="checkbox" name="option_id[]" value="{{ o.id }}" placeholder="answer"><label>{{ o.option }}</label>
+                            <input type="checkbox" name="option_id[]" value="{{ o.id }}"
+                                placeholder="answer"><label>{{ o.option }}</label>
                             <br>
                             {% endfor %}
                         </td>
@@ -89,77 +95,9 @@
             {% endfor %}
             <button type="submit">Post</button>
         </form>
-        
+
         <br><br>
     </div> <!-- end here -->
 </body>
-
-<script type="text/javascript">
-    let total = 0; //給checkbox使用的id流水號，起始值為0
-    let answerList = ['False']; //預設第一題題目未勾選正確答案
-    let optionList = [];
-
-    $(document).on('click', '#submit-exam', function (e) {
-        e.preventDefault();
-        $("[option-tag-id]").each(function () { //拿到所有的options[]
-            if ($(this).val()) {
-                optionList.push($(this).val());
-            }
-        });
-        $.ajaxSetup({
-            headers: { "X-CSRFToken": '{{csrf_token}}' }
-        });
-        $.ajax({
-            url: 'http://127.0.0.1:8000/exams/new/answers-options',
-            type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                exam_id: $(this).attr("exam_id"),
-                answer_list: answerList,
-                option_list: optionList,
-                question: $("#question").val(),
-                exam_title: $("#exam_title").val()
-
-            }),
-            success: function (data) {
-                window.location.href = '/exams/new/' + data.exam_id;
-            }
-        });
-    })
-
-    $(document).on('click', '#add-options', function (e) {
-        e.preventDefault();
-        var addBlockId = total = total + 1;
-        answerList.push('False');
-        var addBlock = document.createElement('div');
-        $(addBlock).addClass('form-contact');
-        $(addBlock).attr('id', 'form-contact-' + addBlockId);
-        var inputName3 = document.createElement('input');
-        $(inputName3).attr('type', 'checkbox');
-        $(inputName3).attr('id', addBlockId);
-        $(inputName3).attr('placeholder', 'answer');
-        $(inputName3).appendTo($(addBlock));
-        var inputName = document.createElement('input');
-        $(inputName).attr('type', 'text');
-        $(inputName).attr('option-tag-id', '');
-        $(inputName).attr('placeholder', 'option');
-        $(inputName).appendTo($(addBlock));
-        $(addBlock).appendTo($('.form-contacts-container'));
-        $('#contacts').val(total);
-
-    });
-
-    $(document).on('change', function () {
-        $("input:checkbox").each(function () {
-            if ($(this).is(":checked")) {
-                answerList[$(this).prop("id")] = 'True'
-                // alert(answerList)
-            } else {
-                answerList[$(this).prop("id")] = 'False'
-                // alert(answerList)
-            }
-        })
-    })
-</script>
 
 </html>
