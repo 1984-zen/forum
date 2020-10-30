@@ -65,6 +65,7 @@ class Option_Users(models.Model):
 class Exam_files(models.Model):
     name = models.CharField(max_length=30)
     file_path = models.CharField(max_length=255)
+    type = models.CharField(max_length=10, null=True)
     exam = models.ForeignKey(Exams, on_delete=models.CASCADE, related_name='exam_files')
     created_at = models.DateTimeField(editable=False)
     updated_at = models.DateTimeField(null=True)
@@ -76,4 +77,4 @@ class Exam_files(models.Model):
         if not self.id:
             self.created_at = dateformat.format(timezone.now(), 'Y-m-d H:i:s')
         self.updated_at = dateformat.format(timezone.now(), 'Y-m-d H:i:s')
-        return super(Post_files, self).save(*args, **kwargs)
+        return super(Exam_files, self).save(*args, **kwargs)

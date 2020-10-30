@@ -25,7 +25,10 @@
         {% else %}
         <span><a href="/logout">log out</a></span>
         {% endif %}
-        <h2>Hi! Wellcome {{ username|default:'Guest' }}</h2><br>
+        <h2>Hi! Wellcome {{ username|default:'Guest' }}</h2>
+
+        <br>
+
         <label><b>Question-1:</b></label>
         <textarea style="width:100%;" id="question" rows="5"></textarea>
 
@@ -36,10 +39,24 @@
             </div>
             <!-- We'll be adding additional inputs here -->
         </div>
+        
+        <br>
+        
         <div class="form-contacts-add">
             <input type="button" value="Add More Options" id="add-options">
         </div>
-        <!-- </form> -->
+        
+        <br>
+
+        <form enctype="multipart/form-data">{% csrf_token %}
+            <ul>
+                <li>
+                    <span>上傳影片(可多選, 檔案格式.mp4)</span>
+                    <input type="file" id="media" name="file" multiple>
+                </li>
+            </ul>
+        </form>
+
         <button type="submit" id="submit-exam" exam_id="{{ exam_id }}">Add in below</button>
 
         <br><br>
@@ -65,8 +82,20 @@
                         <strong>Question</strong>
                     </td>
                     <td>
-                        <span style="color: blue;">{{ q.question }}</span>
+                        <p style="color: blue;">{{ q.question }}</p>
                         <!-- <small style="color: #888">{{ board.description }}</small>-->
+                        {% if videos %}
+                        {% for v in videos %}
+                        <video width='400' controls>
+                            <source src="{{ MEDIA_URL }}{{ v.file_path }}" type='video/mp4'>
+                            </source>
+                            Your browser does not support the video tag.
+                        </video>
+                        
+                        <br>
+
+                        {% endfor %}
+                        {% endif %}
                     </td>
                 </tr>
                 <tr>
@@ -92,10 +121,14 @@
     </div> <!-- end here -->
 </body>
 
+
 <script type="text/javascript">
-    let total = 0; //給checkbox使用的id流水號，起始值為0
-    let answerList = ['False']; //預設第一題題目未勾選正確答案
+    let total = 0; //流水號從零開始，搭配optionList[]的index
+    let answerList = ['False']; //預設第一筆的checkbox是未打勾=false
     let optionList = [];
+    let form_data = new FormData();
+    let exam_id = window.location.pathname.split('/')[3];
+    let media_file = [];
 
     $(document).on('click', '#submit-exam', function (e) {
         e.preventDefault();
@@ -104,23 +137,26 @@
                 optionList.push($(this).val());
             }
         });
+        let len = $('#media')[0].files.length;
+        for (let i = 0; i < len; i++) {
+            media_file = $('#media')[0].files[i];
+            form_data.append('media_file', media_file)
+        }
+        form_data.append('exam_id', exam_id)
+        form_data.append('answer_list', answerList)
+        form_data.append('option_list', optionList)
+        form_data.append('question', $("#question").val())
         $.ajaxSetup({
             headers: { "X-CSRFToken": '{{csrf_token}}' }
         });
         $.ajax({
-            url: 'http://127.0.0.1:8000/exams/new/answers-options',
+            url: "http://127.0.0.1:8000/exams/new/answers-options",
             type: 'POST',
-            contentType: 'application/json',
-            data: JSON.stringify({
-                exam_id: $(this).attr("exam_id"),
-                answer_list: answerList,
-                option_list: optionList,
-                question: $("#question").val(),
-                exam_title: $("#exam_title").val()
-
-            }),
+            contentType: false,
+            processData: false,
+            data: form_data,
             success: function (data) {
-                window.location.href = '/exams/new/' + data.exam_id;
+                window.location.href = '/exams/new/' + data.exam_id; //這裡拿到後端傳過來新建立的exam的exam_id，覆寫上面form_data的exam_id
             }
         });
     })

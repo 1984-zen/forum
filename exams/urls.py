@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from django.urls import path
 from exams import views
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('exams', views.show_exam_list, name = 'show_exam_list'),
@@ -11,4 +13,5 @@ urlpatterns = [
     path('exams/answer/<int:exam_id>', views.user_answers, name = 'user_answers'),
     path('exams/<int:exam_id>/users', views.show_exam_user_list, name = 'show_exam_user_list'),
     path('exams/<int:exam_id>/users/<int:user_id>/result', views.show_user_exam_result, name = 'show_user_exam_result'),
-]
+] 
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

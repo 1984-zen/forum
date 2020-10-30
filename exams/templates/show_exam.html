@@ -45,7 +45,7 @@
                 </tr>
             </thead>
         </table>
-        123
+
         <br>
 
         <form method="post" action="/exams/answer/{{ exam_id }}" enctype="multipart/form-data">{% csrf_token %}
@@ -57,8 +57,20 @@
                             <strong>Question</strong>
                         </td>
                         <td>
-                            <span style="color: blue;">{{ q.question }}</span>
+                            <p style="color: blue;">{{ q.question }}</p>
                             <!-- <small style="color: #888">{{ board.description }}</small>-->
+                            {% if videos %}
+                            {% for v in videos %}
+                            <video width='400' controls>
+                                <source src="{{ MEDIA_URL }}{{ v.file_path }}" type='video/mp4'>
+                                </source>
+                                Your browser does not support the video tag.
+                            </video>
+
+                            <br>
+
+                            {% endfor %}
+                            {% endif %}
                         </td>
                     </tr>
                     <tr>
