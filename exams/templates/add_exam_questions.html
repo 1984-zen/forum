@@ -91,6 +91,7 @@
                         <!-- <small style="color: #888">{{ board.description }}</small>-->
                         {% if videos %}
                         {% for v in videos %}
+                        {% if v.question_id == q.id %}
                         <video width='400' controls>
                             <source src="{{ MEDIA_URL }}{{ v.file_path }}" type='video/mp4'>
                             </source>
@@ -99,15 +100,18 @@
                         
                         <br>
 
+                        {% endif %}
                         {% endfor %}
                         {% endif %}
 
                         {% if images %}
                         {% for i in images %}
+                        {% if i.question_id == q.id %}
                         <img src="{{ MEDIA_URL }}{{ i.file_path }}" width='400'>
 
                         <br>
 
+                        {% endif %}
                         {% endfor %}
                         {% endif %}
                     </td>

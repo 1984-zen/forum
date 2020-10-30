@@ -62,7 +62,7 @@ def get_ajax_answers_options(request):
         create_question = Questions(question = question, exam_id = exam_id)
         create_question.save()
 
-        for i in range(len(list(option_list))):
+        for i in range(len(option_list)):
             create_option = Options(option = option_list[i], is_answer = answer_list[i], question_id = create_question.id)
             create_option.save()
 
@@ -70,14 +70,14 @@ def get_ajax_answers_options(request):
             files = request.FILES.getlist('media_file')
             for file in files:
                 fname, file_relative_path = handle_uploaded_media_file(file)
-                create_file_path = Exam_files(name = fname, file_path = file_relative_path, type = "media", exam_id = exam_id)
+                create_file_path = Exam_files(name = fname, file_path = file_relative_path, type = "media", exam_id = exam_id, question_id = create_question.id)
                 create_file_path.save()
         
         if(request.FILES.getlist('image_list')):
             images = request.FILES.getlist('image_list')
             for image in images:
                 fname, file_relative_path = handle_uploaded_image_file(image)
-                create_file_path = Exam_files(name = fname, file_path = file_relative_path, type = "image", exam_id = exam_id)
+                create_file_path = Exam_files(name = fname, file_path = file_relative_path, type = "image", exam_id = exam_id, question_id = create_question.id)
                 create_file_path.save()
         return JsonResponse({'exam_id': exam_id})
     else: #如果是新建立exam
@@ -95,14 +95,14 @@ def get_ajax_answers_options(request):
             files = request.FILES.getlist('media_file')
             for file in files:
                 fname, file_relative_path = handle_uploaded_media_file(file)
-                create_file_path = Exam_files(name = fname, file_path = file_relative_path, type = "media", exam_id = create_exam.id)#拿取剛建立完的create_exam.id
+                create_file_path = Exam_files(name = fname, file_path = file_relative_path, type = "media", exam_id = create_exam.id, question_id = create_question.id)#拿取剛建立完的create_exam.id
                 create_file_path.save()
 
         if(request.FILES.getlist('image_list')):
             images = request.FILES.getlist('image_list')
             for image in images:
                 fname, file_relative_path = handle_uploaded_image_file(image)
-                create_file_path = Exam_files(name = fname, file_path = file_relative_path, type = "image", exam_id = create_exam.id)#拿取剛建立完的create_exam.id
+                create_file_path = Exam_files(name = fname, file_path = file_relative_path, type = "image", exam_id = create_exam.id, question_id = create_question.id)#拿取剛建立完的create_exam.id
                 create_file_path.save()
         return JsonResponse({'exam_id': create_exam.id})
 
