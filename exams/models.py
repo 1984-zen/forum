@@ -67,6 +67,7 @@ class Exam_files(models.Model):
     file_path = models.CharField(max_length=255)
     type = models.CharField(max_length=10, null=True)
     exam = models.ForeignKey(Exams, on_delete=models.CASCADE, related_name='exam_files')
+    question = models.ForeignKey(Questions, on_delete=models.CASCADE, null=True, related_name='exam_files')
     created_at = models.DateTimeField(editable=False)
     updated_at = models.DateTimeField(null=True)
     

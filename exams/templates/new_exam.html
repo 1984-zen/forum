@@ -29,11 +29,12 @@
         <!-- <form method="post" action="/exams/new" enctype="multipart/form-data">{% csrf_token %} -->
         <label><b>Exam Title:</b></label>
         <textarea style="width:100%;" id="exam_title" rows="1"></textarea>
-        <label><b>Question-1:</b></label>
+        <label><b>Question:</b></label>
         <textarea style="width:100%;" id="question" rows="5"></textarea>
 
         <div class="form-contacts-container">
             <div class="form-contact" id="form-contact-1">
+                <p><b>is_Answer/ Option</b></p>
                 <input type="checkbox" id=0 placeholder="answer">
                 <input type="text" option-tag-id="" placeholder="option">
             </div>
@@ -51,30 +52,15 @@
                     <span>上傳影片(可多選, 檔案格式.mp4)</span>
                     <input type="file" id="media" name="file" multiple>
                 </li>
+                <li>
+                    <span>上傳圖片(可多選, 檔案格式 .jpeg .jpg .png")</span>
+                    <input type="file" id="image" name="image" accept="image/jpeg, image/png, image/jpg" multiple>
+                </li>
             </ul>
         </form>
 
         <button type="submit" id="submit-exam">Create</button>
 
-        <br><br>
-
-        <table style="width:100%;" border="1">
-            <thead>
-                <tr>
-                    <th>Exam Titles</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for exam in exams %}
-                <tr>
-                    <td>
-                        <a href="/boards/{{ board.id }}/posts">{{ exam.name }}</a><br>
-                        <!-- <small style="color: #888">{{ board.description }}</small>-->
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
     </div> <!-- end here -->
 </body>
 
@@ -85,6 +71,7 @@
     let form_data = new FormData();
     let exam_id = "";
     let media_file = [];
+    let image_list = [];
 
     $(document).on('click', '#submit-exam', function (e) {
         e.preventDefault();
@@ -97,6 +84,11 @@
         for (let i = 0; i < len; i++) {
             media_file = $('#media')[0].files[i];
             form_data.append('media_file', media_file)
+        }
+        let imageLen = $('#image')[0].files.length;
+        for (let i = 0; i < imageLen; i++) {
+            image_list = $('#image')[0].files[i];
+            form_data.append('image_list', image_list)
         }
         form_data.append('exam_id', exam_id)
         form_data.append('answer_list', answerList,)

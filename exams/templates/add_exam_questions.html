@@ -29,11 +29,12 @@
 
         <br>
 
-        <label><b>Question-1:</b></label>
+        <label><b>Question:</b></label>
         <textarea style="width:100%;" id="question" rows="5"></textarea>
 
         <div class="form-contacts-container">
             <div class="form-contact" id="form-contact-1">
+                <p><b>is_Answer/ Option</b></p>
                 <input type="checkbox" id=0 placeholder="answer">
                 <input type="text" option-tag-id="" placeholder="option">
             </div>
@@ -53,6 +54,10 @@
                 <li>
                     <span>上傳影片(可多選, 檔案格式.mp4)</span>
                     <input type="file" id="media" name="file" multiple>
+                </li>
+                <li>
+                    <span>上傳圖片(可多選, 檔案格式 .jpeg .jpg .png")</span>
+                    <input type="file" id="image" name="image" accept="image/jpeg, image/png, image/jpg" multiple>
                 </li>
             </ul>
         </form>
@@ -96,6 +101,15 @@
 
                         {% endfor %}
                         {% endif %}
+
+                        {% if images %}
+                        {% for i in images %}
+                        <img src="{{ MEDIA_URL }}{{ i.file_path }}" width='400'>
+
+                        <br>
+
+                        {% endfor %}
+                        {% endif %}
                     </td>
                 </tr>
                 <tr>
@@ -129,6 +143,7 @@
     let form_data = new FormData();
     let exam_id = window.location.pathname.split('/')[3];
     let media_file = [];
+    let image_list = [];
 
     $(document).on('click', '#submit-exam', function (e) {
         e.preventDefault();
@@ -141,6 +156,11 @@
         for (let i = 0; i < len; i++) {
             media_file = $('#media')[0].files[i];
             form_data.append('media_file', media_file)
+        }
+        let imageLen = $('#image')[0].files.length;
+        for (let i = 0; i < imageLen; i++) {
+            image_list = $('#image')[0].files[i];
+            form_data.append('image_list', image_list)
         }
         form_data.append('exam_id', exam_id)
         form_data.append('answer_list', answerList)

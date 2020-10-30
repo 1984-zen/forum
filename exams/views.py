@@ -70,7 +70,14 @@ def get_ajax_answers_options(request):
             files = request.FILES.getlist('media_file')
             for file in files:
                 fname, file_relative_path = handle_uploaded_media_file(file)
-                create_file_path = Exam_files(name = fname, file_path = file_relative_path, type = "media", exam_id = exam_id)#拿取剛建立完的create_post.id
+                create_file_path = Exam_files(name = fname, file_path = file_relative_path, type = "media", exam_id = exam_id)
+                create_file_path.save()
+        
+        if(request.FILES.getlist('image_list')):
+            images = request.FILES.getlist('image_list')
+            for image in images:
+                fname, file_relative_path = handle_uploaded_image_file(image)
+                create_file_path = Exam_files(name = fname, file_path = file_relative_path, type = "image", exam_id = exam_id)
                 create_file_path.save()
         return JsonResponse({'exam_id': exam_id})
     else: #如果是新建立exam
@@ -88,7 +95,14 @@ def get_ajax_answers_options(request):
             files = request.FILES.getlist('media_file')
             for file in files:
                 fname, file_relative_path = handle_uploaded_media_file(file)
-                create_file_path = Exam_files(name = fname, file_path = file_relative_path, type = "media", exam_id = create_exam.id)#拿取剛建立完的create_post.id
+                create_file_path = Exam_files(name = fname, file_path = file_relative_path, type = "media", exam_id = create_exam.id)#拿取剛建立完的create_exam.id
+                create_file_path.save()
+
+        if(request.FILES.getlist('image_list')):
+            images = request.FILES.getlist('image_list')
+            for image in images:
+                fname, file_relative_path = handle_uploaded_image_file(image)
+                create_file_path = Exam_files(name = fname, file_path = file_relative_path, type = "image", exam_id = create_exam.id)#拿取剛建立完的create_exam.id
                 create_file_path.save()
         return JsonResponse({'exam_id': create_exam.id})
 
@@ -101,6 +115,15 @@ def handle_uploaded_media_file(f):
             destination.write(chunk)
     return f.name, file_relative_path
 
+def handle_uploaded_image_file(i):
+    timestamp = str(datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
+    file_relative_path = timestamp + '_' + i.name
+    file_path = os.path.join(os.path.dirname(__file__),'upload_file/media', file_relative_path)
+    with open(file_path, 'wb') as destination:
+        for chunk in i.chunks():
+            destination.write(chunk)
+    return i.name, file_relative_path
+
 def add_exam_questions(request, exam_id):
     user_id = request.session.get('user_id')
     has_user = Users.objects.filter(id = user_id).count()
@@ -112,7 +135,8 @@ def add_exam_questions(request, exam_id):
     exam = Exams.objects.get(id = exam_id)
     questions = exam.questions.all()
     videos = exam.exam_files.filter(type = 'media')
-    return render(request, 'add_exam_questions.html', {'exam_id': exam_id, 'username': username, 'exam': exam, 'questions': questions, 'videos': videos})
+    images = exam.exam_files.filter(type = 'image')
+    return render(request, 'add_exam_questions.html', {'exam_id': exam_id, 'username': username, 'exam': exam, 'questions': questions, 'videos': videos, 'images': images})
 
 def show_exam(request, exam_id):
     user_id = request.session.get('user_id')
