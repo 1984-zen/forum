@@ -11,102 +11,130 @@
 </head>
 
 <body>
+    <div class="container">
+        <!-- start here -->
+        <ol class="breadcrumb my-4">
+            <li class="breadcrumb-item"><a href="{% url 'show_exam_list' %}">Exams</a></li>
+            <li class="breadcrumb-item"><a href="/exams/{{ exam.id }}/users">標題: {{ exam.name }}</a></li>
+            <li class="breadcrumb-item">{{ username }} 的考試結果</li>
+        </ol>
 
-    <!-- <img src="{% static "img/board_img.jpg" %}" width="1024" height="576">
-      <ol class="breadcrumb my-4">
-        <li class="breadcrumb-item">Boards</li>
-      </ol> -->
+        {% if not username %}
+        <span>please <a href="/login">login</a>
+            <!--/ <a href = "/register">register</a> --></span>
+        {% else %}
+        <span><a href="/logout">log out</a></span>
+        {% endif %}
+        <h2>Hi! Wellcome {{ username|default:'Guest' }}</h2><br>
 
-    {% if not username %}
-    <span>please <a href="/login">login</a>
-        <!--/ <a href = "/register">register</a> --></span>
-    {% else %}
-    <span><a href="/logout">log out</a></span>
-    {% endif %}
-    <h2>Hi! Wellcome {{ username|default:'Guest' }}</h2><br>
+        <br><br>
 
-    <br><br>
+        <p>左邊是"學生回答，右邊是"正確解答"</p>
 
-    <p>左邊是"學生回答，右邊是"正確解答"</p>
+        <h3 class="sub-header">考生姓名: {{ username }}</h3>
 
-    <h3 class="sub-header">考生姓名: {{ username }}</h3>
+        {% for q in questions %}
+        <div class="row">
+            <div class="table-responsive col-md-6">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th class="col-md-2" style="color:blue">
+                                <p>Question: {{ q.question }}</p>
+                                {% if videos %}
+                                {% for v in videos %}
+                                {% if v.question_id == q.id %}
+                                <video width='400' controls>
+                                    <source src="{{ MEDIA_URL }}{{ v.file_path }}" type='video/mp4'>
+                                    </source>
+                                    Your browser does not support the video tag.
+                                </video>
 
-    {% for q in questions %}
-    <div class="row">
-        <div class="table-responsive col-md-6">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th class="col-md-2" style="color:blue">
-                            <p>Question: {{ q.question }}</p>
-                            {% if videos %}
-                            {% for v in videos %}
-                            <video width='400' controls>
-                                <source src="{{ MEDIA_URL }}{{ v.file_path }}" type='video/mp4'>
-                                </source>
-                                Your browser does not support the video tag.
-                            </video>
+                                <br>
 
-                            <br>
+                                {% endif %}
+                                {% endfor %}
+                                {% endif %}
 
-                            {% endfor %}
+                                {% if images %}
+                                {% for i in images %}
+                                {% if i.question_id == q.id %}
+                                <img src="{{ MEDIA_URL }}{{ i.file_path }}" width='400'>
+
+                                <br>
+
+                                {% endif %}
+                                {% endfor %}
+                                {% endif %}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for o in q.options.all %}
+                        <tr>
+                            {% if o.id in user_answer_list %}
+                            <td class="col-md-2" option_id={{ o.id }} style="color:red;">{{ o.option }}</td>
+                            {% else %}
+                            <td class="col-md-2" option_id={{ o.id }}>{{ o.option }}</td>
                             {% endif %}
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for o in q.options.all %}
-                    <tr>
-                        {% if o.id in user_answer_list %}
-                        <td class="col-md-2" option_id={{ o.id }} style="color:red;">{{ o.option }}</td>
-                        {% else %}
-                        <td class="col-md-2" option_id={{ o.id }}>{{ o.option }}</td>
-                        {% endif %}
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
 
-        <div class="table-responsive col-md-6">
-            <table class="table table-striped">
-                <thead>
-                    <tr>
-                        <th class="col-md-2" style="color:blue">
-                            <p>Question: {{ q.question }}</p>
-                            {% if videos %}
-                            {% for v in videos %}
-                            <video width='400' controls>
-                                <source src="{{ MEDIA_URL }}{{ v.file_path }}" type='video/mp4'>
-                                </source>
-                                Your browser does not support the video tag.
-                            </video>
+            <div class="table-responsive col-md-6">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th class="col-md-2" style="color:blue">
+                                <p>Question: {{ q.question }}</p>
+                                {% if videos %}
+                                {% for v in videos %}
+                                {% if v.question_id == q.id %}
+                                <video width='400' controls>
+                                    <source src="{{ MEDIA_URL }}{{ v.file_path }}" type='video/mp4'>
+                                    </source>
+                                    Your browser does not support the video tag.
+                                </video>
 
-                            <br>
+                                <br>
 
-                            {% endfor %}
+                                {% endif %}
+                                {% endfor %}
+                                {% endif %}
+
+                                {% if images %}
+                                {% for i in images %}
+                                {% if i.question_id == q.id %}
+                                <img src="{{ MEDIA_URL }}{{ i.file_path }}" width='400'>
+
+                                <br>
+
+                                {% endif %}
+                                {% endfor %}
+                                {% endif %}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for o in q.options.all %}
+                        <tr>
+                            {% if o.is_answer == 1 %}
+                            <td class="col-md-2" option_id={{ o.id }} style="color:red;">{{ o.option }}</td>
+                            {% else %}
+                            <td class="col-md-2" option_id={{ o.id }}>{{ o.option }}</td>
                             {% endif %}
-                        </th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for o in q.options.all %}
-                    <tr>
-                        {% if o.is_answer == 1 %}
-                        <td class="col-md-2" option_id={{ o.id }} style="color:red;">{{ o.option }}</td>
-                        {% else %}
-                        <td class="col-md-2" option_id={{ o.id }}>{{ o.option }}</td>
-                        {% endif %}
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
+        {% endfor %}
+
+        <br>
     </div>
-    {% endfor %}
-
-    <br>
-
 </body>
 
 </html>

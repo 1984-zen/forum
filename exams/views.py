@@ -35,7 +35,8 @@ def show_exam_user_list(request, exam_id):
     exam = Exams.objects.get(id = exam_id)
     user_ids = Option_Users.objects.filter(exam_id = exam_id).values('user_id').distinct()
     # users = Users.objects.prefetch_related('option_users').filter(id__in=user_ids) #同下users
-    users = Users.objects.filter(id__in=user_ids) #這樣只會filter出{name: zen}
+    users = Users.objects.filter(id__in=user_ids)
+    #下面兩個是筆記
     # exams = Users.objects.filter(id__in=user_ids).prefetch_related('option_users')
     # users = Users.objects.prefetch_related('option_users').all()
     return render(request, 'exam_user_list.html', {'users': users, 'exam': exam, 'username': username})
@@ -180,11 +181,12 @@ def show_user_exam_result(request, exam_id, user_id):
     exam = Exams.objects.get(id = exam_id)
     questions = Questions.objects.filter(exam_id = exam_id)
     videos = exam.exam_files.filter(type = 'media')
+    images = exam.exam_files.filter(type = 'image')
     user_answers = Option_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id)
     user_answer_list = []
     for user in user_answers:
         user_answer_list.append(user.option_id)
-    return render(request, 'show_user_exam_result.html', {'username': username, 'questions': questions, 'user_answer_list': user_answer_list, 'videos': videos})
+    return render(request, 'show_user_exam_result.html', {'username': username, 'questions': questions, 'user_answer_list': user_answer_list, 'videos': videos, 'images': images, 'exam': exam})
 
 def delete_question(request, exam_id, question_id):
     question_files = Exam_files.objects.filter(question_id = question_id)
