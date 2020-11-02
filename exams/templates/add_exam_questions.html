@@ -67,7 +67,7 @@
         <br><br>
 
         <a href="/exams/{{ exam.id }}"><button>Finished! 分享給別人測驗</button></a>
-        
+
         <br><br>
 
         <table style="width:100%">
@@ -89,6 +89,7 @@
                 <tr>
                     <td style="width:8%">
                         <strong>Question</strong>
+                        <a href="/exams/{{ q.exam_id }}/questions/{{ q.id }}"><button>Delete question</button></a>
                     </td>
                     <td>
                         <p style="color: blue;">{{ q.question }}</p>
@@ -101,7 +102,7 @@
                             </source>
                             Your browser does not support the video tag.
                         </video>
-                        
+                        <a href="/exams/{{ q.exam_id }}/questions/{{ q.id }}/question_files/{{ v.id }}"><button>Delete</button></a>
                         <br>
 
                         {% endif %}
@@ -112,7 +113,7 @@
                         {% for i in images %}
                         {% if i.question_id == q.id %}
                         <img src="{{ MEDIA_URL }}{{ i.file_path }}" width='400'>
-
+                        
                         <br>
 
                         {% endif %}
