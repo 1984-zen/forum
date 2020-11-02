@@ -15,5 +15,6 @@ urlpatterns = [
     path('exams/<int:exam_id>/users/<int:user_id>/result', views.show_user_exam_result, name = 'show_user_exam_result'),
     path('exams/<int:exam_id>/questions/<int:question_id>', views.delete_question, name = 'delete_question'),
     path('exams/<int:exam_id>/questions/<int:question_id>/question_files/<int:question_media_id>', views.delete_question_media, name = 'delete_question_media'),
+    path('exams/<int:exam_id>/questions/<int:question_id>/question_files/<int:question_image_id>', views.delete_question_image, name = 'delete_question_image'),
 ] 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
