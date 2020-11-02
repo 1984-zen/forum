@@ -13,11 +13,10 @@
 <body>
     <div class="container">
         <!-- start here -->
-
-        <!-- <img src="{% static "img/board_img.jpg" %}" width="1024" height="576">
-            <ol class="breadcrumb my-4">
-                <li class="breadcrumb-item">Boards</li>
-            </ol> -->
+        <ol class="breadcrumb my-4">
+            <li class="breadcrumb-item"><a href="{% url 'show_exam_list' %}">Exams</a></li>
+            <li class="breadcrumb-item">Add or Edit: {{ exam.name }}</li>
+        </ol>
 
         {% if not username %}
         <span>please <a href="/login">login</a>
@@ -66,9 +65,9 @@
 
         <br><br>
 
-        <a href="/exams/{{ exam.id }}"><button>Finished! 分享給別人測驗</button></a>
-
-        <br><br>
+        <div style="text-align: right;">
+            <a href="/exams/{{ exam.id }}"><button>Finished! 分享給別人測驗</button></a>
+        </div>
 
         <table style="width:100%">
             <thead>
