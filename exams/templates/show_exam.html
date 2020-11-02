@@ -13,11 +13,10 @@
 <body>
     <div class="container">
         <!-- start here -->
-
-        <!-- <img src="{% static "img/board_img.jpg" %}" width="1024" height="576">
       <ol class="breadcrumb my-4">
-        <li class="breadcrumb-item">Boards</li>
-      </ol> -->
+        <li class="breadcrumb-item"><a href="{% url 'show_exam_list' %}">Exams</a></li>
+        <li class="breadcrumb-item">開始作答</li>
+      </ol>
 
         {% if not username %}
         <span>please <a href="/login">login</a>
@@ -93,7 +92,10 @@
                 </tbody>
             </table>
             {% endfor %}
-            <button type="submit">Post</button>
+
+            <br>
+            
+            <button type="submit">提交答案</button>
         </form>
 
         <br><br>
