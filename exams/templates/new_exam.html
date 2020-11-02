@@ -13,11 +13,10 @@
 <body>
     <div class="container">
         <!-- start here -->
-
-        <!-- <img src="{% static "img/board_img.jpg" %}" width="1024" height="576">
-      <ol class="breadcrumb my-4">
-        <li class="breadcrumb-item">Boards</li>
-      </ol> -->
+        <ol class="breadcrumb my-4">
+            <li class="breadcrumb-item"><a href="{% url 'show_exam_list' %}">Exams</a></li>
+            <li class="breadcrumb-item">Create a new exam</li>
+        </ol>
 
         {% if not username %}
         <span>please <a href="/login">login</a>
@@ -26,7 +25,6 @@
         <span><a href="/logout">log out</a></span>
         {% endif %}
         <h2>Hi! Wellcome {{ username|default:'Guest' }}</h2><br>
-        <!-- <form method="post" action="/exams/new" enctype="multipart/form-data">{% csrf_token %} -->
         <label><b>Exam Title:</b></label>
         <textarea style="width:100%;" id="exam_title" rows="1"></textarea>
         <label><b>Question:</b></label>
