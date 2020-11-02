@@ -13,12 +13,12 @@
 <body>
     <div class="container">
         <!-- start here -->
-        
+
         <!-- <img src="{% static "img/board_img.jpg" %}" width="1024" height="576">
             <ol class="breadcrumb my-4">
                 <li class="breadcrumb-item">Boards</li>
             </ol> -->
-            
+
         {% if not username %}
         <span>please <a href="/login">login</a>
             <!--/ <a href = "/register">register</a> --></span>
@@ -40,13 +40,13 @@
             </div>
             <!-- We'll be adding additional inputs here -->
         </div>
-        
+
         <br>
-        
+
         <div class="form-contacts-add">
             <input type="button" value="Add More Options" id="add-options">
         </div>
-        
+
         <br>
 
         <form enctype="multipart/form-data">{% csrf_token %}
@@ -102,7 +102,8 @@
                             </source>
                             Your browser does not support the video tag.
                         </video>
-                        <a href="/exams/{{ q.exam_id }}/questions/{{ q.id }}/question_files/{{ v.id }}"><button>Delete</button></a>
+                        <a
+                            href="/exams/{{ q.exam_id }}/questions/{{ q.id }}/question_files/{{ v.id }}"><button>Delete</button></a>
                         <br>
 
                         {% endif %}
@@ -113,8 +114,9 @@
                         {% for i in images %}
                         {% if i.question_id == q.id %}
                         <img src="{{ MEDIA_URL }}{{ i.file_path }}" width='400'>
-                        <a href="/exams/{{ q.exam_id }}/questions/{{ q.id }}/question_files/{{ i.id }}"><button>Delete</button></a>
-                        
+                        <a
+                            href="/exams/{{ q.exam_id }}/questions/{{ q.id }}/question_files/{{ i.id }}"><button>Delete</button></a>
+
                         <br>
 
                         {% endif %}
@@ -128,19 +130,26 @@
                     </td>
                     <td>
                         {% for o in q.options.all %}
+                        {% if o.option != "" and o.is_answer == 0 %}
                         <ul>
-                            {% if o.is_answer == 0 %}
-                            <li>{{ o.option }}</li>
-                            {% else %}
-                            <li style="color:blueviolet;">{{ o.option }}</li>
-                            {% endif %}
+                            <li>{{ o.option }} <a href="/exams/{{ q.exam_id }}/options/{{ o.id }}"><button>Delete
+                                        option</button></a></li>
                         </ul>
+                        {% elif o.option != "" and o.is_answer == 1 %}
+                        <ul>
+                            <li style="color:blueviolet;">{{ o.option }} <a
+                                    href="/exams/{{ q.exam_id }}/options/{{ o.id }}"><button>Delete
+                                        option</button></a></li>
+                        </ul>
+                        {% endif %}
                         {% endfor %}
                     </td>
                 </tr>
             </tbody>
         </table>
+
         <br><br>
+
         {% endfor %}
     </div> <!-- end here -->
 </body>
@@ -186,7 +195,7 @@
             processData: false,
             data: form_data,
             success: function (data) {
-                window.location.href = '/exams/new/' + data.exam_id; //這裡拿到後端傳過來新建立的exam的exam_id，覆寫上面form_data的exam_id
+                window.location.href = '/exams/new/' + data.exam_id;
             }
         });
     })
@@ -217,10 +226,8 @@
         $("input:checkbox").each(function () {
             if ($(this).is(":checked")) {
                 answerList[$(this).prop("id")] = 'True'
-                // alert(answerList)
             } else {
                 answerList[$(this).prop("id")] = 'False'
-                // alert(answerList)
             }
         })
     })
