@@ -165,7 +165,7 @@ def user_answers(request, exam_id):
         question_id = Options.objects.filter(id = option_id)[0].question_id
         create_option_users = Option_Users(user_id = user_id, option_id = option_id, question_id = question_id, exam_id = exam_id)
         create_option_users.save()
-    return HttpResponse("Test result has been sent successfully.")
+    return HttpResponse("Test result has been sent successfully.<a href=\"/exams\">Go back to exam list</a>")
 
 def show_user_exam_result(request, exam_id, user_id):
     username = Users.objects.get(id = user_id)

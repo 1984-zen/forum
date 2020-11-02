@@ -13,12 +13,12 @@
 <body>
     <div class="container">
         <!-- start here -->
-
+        
         <!-- <img src="{% static "img/board_img.jpg" %}" width="1024" height="576">
-      <ol class="breadcrumb my-4">
-        <li class="breadcrumb-item">Boards</li>
-      </ol> -->
-
+            <ol class="breadcrumb my-4">
+                <li class="breadcrumb-item">Boards</li>
+            </ol> -->
+            
         {% if not username %}
         <span>please <a href="/login">login</a>
             <!--/ <a href = "/register">register</a> --></span>
@@ -64,6 +64,10 @@
 
         <button type="submit" id="submit-exam" exam_id="{{ exam_id }}">Add in below</button>
 
+        <br><br>
+
+        <a href="/exams/{{ exam.id }}"><button>Finished! 分享給別人測驗</button></a>
+        
         <br><br>
 
         <table style="width:100%">
