@@ -13,11 +13,10 @@
 <body>
   <div class="container">
     <!-- start here -->
-
-    <!-- <img src="{% static "img/board_img.jpg" %}" width="1024" height="576">
       <ol class="breadcrumb my-4">
-        <li class="breadcrumb-item">Boards</li>
-      </ol> -->
+        <li class="breadcrumb-item"><a href="{% url 'show_exam_list' %}">Exams</a></li>
+        <li class="breadcrumb-item">標題: {{ exam.name }}</li>
+      </ol>
 
     {% if not username %}
     <span>please <a href="/login">login</a>
@@ -31,25 +30,16 @@
     <table style="width:100%;" border="1">
       <thead>
         <tr>
-          <th>Exam Lists</th>
+          <th>列出所有考生</th>
         </tr>
       </thead>
       <tbody>
         {% for user in users %}
         <tr>
           <td>
-            <a href="/exams/{{ exam_id }}/users/{{ user.id }}">{{ user.name }}</a>
+            <a href="/exams/{{ exam.id }}/users/{{ user.id }}/result">{{ user.name }}</a>
           </td>
         </tr>
-        <!-- <tr>
-          <td>
-            {% for u in user.option_users.all%}
-            {{ u.option_id }}</a><br>
-            {{ user.option_users.all.1.user_id }}</a><br> 
-            {{ user.option_users.all.1.user_id }}</a><br> 
-            {% endfor %}
-          </td>
-        </tr> -->
         {% endfor %}
       </tbody>
     </table>

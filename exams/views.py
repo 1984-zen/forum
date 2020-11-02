@@ -25,12 +25,20 @@ def show_exam_list(request):
     return render(request, 'exam_list.html', {'exam_list': exam_list, 'username': username})
 
 def show_exam_user_list(request, exam_id):
-    exam_id = exam_id
+    user_id = request.session.get('user_id')
+    has_user = Users.objects.filter(id = user_id).count()
+    if(has_user):
+        user = Users.objects.get(id = user_id)
+        username = user.name
+    else:
+        username = ""
+    exam = Exams.objects.get(id = exam_id)
     user_ids = Option_Users.objects.filter(exam_id = exam_id).values('user_id').distinct()
+    # users = Users.objects.prefetch_related('option_users').filter(id__in=user_ids) #同下users
+    users = Users.objects.filter(id__in=user_ids) #這樣只會filter出{name: zen}
     # exams = Users.objects.filter(id__in=user_ids).prefetch_related('option_users')
     # users = Users.objects.prefetch_related('option_users').all()
-    users = Users.objects.prefetch_related('option_users').filter(id__in=user_ids)
-    return render(request, 'exam_user_list.html', {'users': users, 'exam_id': exam_id})
+    return render(request, 'exam_user_list.html', {'users': users, 'exam': exam, 'username': username})
 
 def new_exam(request):
     user_id = request.session.get('user_id')
