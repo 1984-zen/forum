@@ -210,3 +210,8 @@ def delete_option(request, exam_id, option_id):
     option = Options.objects.get(id = option_id)
     option.delete()
     return HttpResponseRedirect(reverse("add_more_questions", kwargs={"exam_id": exam_id}))
+
+def delete_exam(request, exam_id):
+    exam = Exams.objects.get(id = exam_id)
+    exam.delete()
+    return HttpResponseRedirect(reverse("show_exam_list"))

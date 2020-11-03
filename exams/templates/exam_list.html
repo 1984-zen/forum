@@ -13,24 +13,20 @@
 <body>
   <div class="container">
     <!-- start here -->
-
-    <!-- <img src="{% static "img/board_img.jpg" %}" width="1024" height="576">
-      <ol class="breadcrumb my-4">
-        <li class="breadcrumb-item">Boards</li>
-      </ol> -->
+    <ol class="breadcrumb my-4">
+      <li class="breadcrumb-item">Exams</li>
+    </ol>
 
     {% if not username %}
-    <span>please <a href="/login">login</a>
-      <!--/ <a href = "/register">register</a> --></span>
+    <span>please <a href="/login">login</a></span>
     {% else %}
     <span><a href="/logout">log out</a></span>
     {% endif %}
     <h2>Hi! Wellcome {{ username|default:'Guest' }}</h2>
     <br>
     <a href="/exams/new"><button>Create a new exam</button></a>
- 
-    <br><br>
 
+    <br><br>
 
     <table style="width:100%;" border="1">
       <thead>
@@ -42,8 +38,9 @@
         {% for exam in exam_list %}
         <tr>
           <td>
-            {{ exam.name }}(<a href="/exams/{{ exam.id }}/users">查看考生結果</a>, <a href="/exams/new/{{ exam.id }}">更新考題</a>))</a><br>
-            <!-- <small style="color: #888">{{ board.description }}</small>-->
+            {{ exam.name }}(<a href="/exams/{{ exam.id }}/users">查看考生結果</a>, <a
+              href="/exams/new/{{ exam.id }}">更新考題</a>) <a href="/exams/{{ exam.id }}/delete"><button>Delete
+                exam</button></a></a><br>
           </td>
         </tr>
         {% endfor %}
@@ -51,4 +48,5 @@
     </table>
   </div> <!-- end here -->
 </body>
+
 </html>
