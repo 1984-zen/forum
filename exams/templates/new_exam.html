@@ -71,6 +71,28 @@
     let media_file = [];
     let image_list = [];
 
+    function getCookie(name) { //https://docs.djangoproject.com/en/2.2/ref/csrf/#ajax
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+    function csrfSafeMethod(method) { //https://docs.djangoproject.com/en/2.2/ref/csrf/#ajax
+        // these HTTP methods do not require CSRF protection
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    }
+    
+    let csrftoken = getCookie('csrftoken');
+
     $(document).on('click', '#submit-exam', function (e) {
         e.preventDefault();
         $("[option-tag-id]").each(function () { //拿到所有的options[]
@@ -93,17 +115,21 @@
         form_data.append('option_list', optionList,)
         form_data.append('question', $("#question").val())
         form_data.append('exam_title', $("#exam_title").val())
-        $.ajaxSetup({
-            headers: { "X-CSRFToken": '{{csrf_token}}' }
+        $.ajaxSetup({ //https://docs.djangoproject.com/en/2.2/ref/csrf/#ajax
+            beforeSend: function (xhr, settings) {
+                if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                    xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                }
+            }
         });
         $.ajax({
-            url: "http://127.0.0.1:8000/exams/new/answers-options",
+            url: "new/answers-options",
             type: 'POST',
             contentType: false,
             processData: false,
             data: form_data,
             success: function (data) {
-                window.location.href = '/exams/new/' + data.exam_id; //這裡拿到後端傳過來新建立的exam的exam_id，覆寫上面form_data的exam_id
+                window.location.href = '/exams/new/' + data.exam_id; //這裡拿到後端傳過來的exam_id，寫進data裡面
             }
         });
     })

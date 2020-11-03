@@ -59,10 +59,7 @@ def get_ajax_answers_options(request):
         username = user.name
     else:
         username = ""
-    # files = request.FILES.get('media_file') #request.FILES是為了拿到form data的FILES的方法。但這樣會拿到None 因為request進來的時候並沒有接收到，也就是ajax 傳送的object是發不出去的，form_data幫我們做了stringify跟multimedia
-    #request.body是拿到Request payload的內容 就會印出b'[object Object]'
-    # 如果要用ajax的data傳送object的話，就必須要JSON.Stringify去encode
-    # [object Object] 就是 stringify({})
+   
     question = request.POST.get("question")
     option_list = request.POST.get("option_list").split(',') #因為從前端接收到的值= True,False所以用split(',')變成['True', 'False']
     answer_list = request.POST.get("answer_list").split(',') #因為從前端接收到的值= True,False所以用split(',')變成['True', 'False']
