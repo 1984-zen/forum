@@ -131,13 +131,13 @@
                         {% for o in q.options.all %}
                         {% if o.option != "" and o.is_answer == 0 %}
                         <ul>
-                            <li>{{ o.option }} <a href="/exams/{{ q.exam_id }}/options/{{ o.id }}"><button>Delete
+                            <li>{{ o.option }} <a href="/exams/{{ q.exam_id }}/options/{{ o.id }}/delete"><button>Delete
                                         option</button></a></li>
                         </ul>
                         {% elif o.option != "" and o.is_answer == 1 %}
                         <ul>
                             <li style="color:blueviolet;">{{ o.option }} <a
-                                    href="/exams/{{ q.exam_id }}/options/{{ o.id }}"><button>Delete
+                                    href="/exams/{{ q.exam_id }}/options/{{ o.id }}/delete"><button>Delete
                                         option</button></a></li>
                         </ul>
                         {% endif %}
