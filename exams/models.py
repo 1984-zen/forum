@@ -95,4 +95,4 @@ class Exam_Users(models.Model):
         if not self.id:
             self.created_at = dateformat.format(timezone.now(), 'Y-m-d H:i:s')
         self.updated_at = dateformat.format(timezone.now(), 'Y-m-d H:i:s')
-        return super(Exam_files, self).save(*args, **kwargs)
+        return super(Exam_Users, self).save(*args, **kwargs)

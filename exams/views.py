@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from exams.models import Exams, Questions, Options, Option_Users, Exam_files
+from exams.models import Exams, Questions, Options, Option_Users, Exam_files, Exam_Users
 from accounts.models import Users
 from django.http import HttpResponseRedirect
 from django.urls import reverse
@@ -12,6 +12,7 @@ from django.http import JsonResponse
 from django.http import HttpResponse
 import json
 from django.conf import settings
+from django.utils import timezone, dateformat
 
 def show_exam_list(request):
     user_id = request.session.get('user_id')
@@ -33,13 +34,14 @@ def show_exam_user_list(request, exam_id):
     else:
         username = ""
     exam = Exams.objects.get(id = exam_id)
-    user_ids = Option_Users.objects.filter(exam_id = exam_id).values('user_id').distinct()
-    # users = Users.objects.prefetch_related('option_users').filter(id__in=user_ids) #同下users
-    users = Users.objects.filter(id__in=user_ids)
-    #下面兩個是筆記
-    # exams = Users.objects.filter(id__in=user_ids).prefetch_related('option_users')
-    # users = Users.objects.prefetch_related('option_users').all()
-    return render(request, 'exam_user_list.html', {'users': users, 'exam': exam, 'username': username})
+    user_list = Option_Users.objects.filter(exam_id = exam_id).values_list('user_exam_count', 'user_id').distinct().values('user_exam_count', 'user_id', 'created_at').order_by('user_id', '-created_at') #用('user_exam_count', 'user_id')分組排序user_exam_count是這位考生考exam的次數
+    #[{'user_exam_count': 4, 'user_id': 1, 'created_at': datetime.datetime(2020, 11, 4, 11, 58, 14)}]>
+    user_list_get_name = []
+    for user in user_list:
+        user_name = Users.objects.get(id = user['user_id'])
+        user_list_get_name.append((user['user_exam_count'], user_name, user['created_at'].strftime('%Y-%m-%d %H:%M'), user['user_id']))
+        #[(4, <Users: zen>, '2020-11-04')]
+    return render(request, 'exam_user_list.html', {'user_list': user_list_get_name, 'exam': exam, 'username': username})
 
 def new_exam(request):
     user_id = request.session.get('user_id')
@@ -166,10 +168,13 @@ def user_answers(request, exam_id):
     else:
         username = ""
     exam_id = exam_id
+    create_exam_users = Exam_Users(user_id = user_id, exam_id = exam_id, date = datetime.datetime.now())
+    create_exam_users.save()
+    user_exam_count = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).count() #算出這個user在這個exam考了幾次
     option_ids_list = request.POST.getlist("option_id[]")
     for option_id in option_ids_list:
         question_id = Options.objects.filter(id = option_id)[0].question_id
-        create_option_users = Option_Users(user_id = user_id, option_id = option_id, question_id = question_id, exam_id = exam_id)
+        create_option_users = Option_Users(user_id = user_id, option_id = option_id, question_id = question_id, exam_id = exam_id, user_exam_count = user_exam_count)
         create_option_users.save()
     return HttpResponse("Test result has been sent successfully.<a href=\"/exams\">Go back to exam list</a>")
 

@@ -13,10 +13,10 @@
 <body>
   <div class="container">
     <!-- start here -->
-      <ol class="breadcrumb my-4">
-        <li class="breadcrumb-item"><a href="{% url 'show_exam_list' %}">Exams</a></li>
-        <li class="breadcrumb-item">標題: {{ exam.name }}</li>
-      </ol>
+    <ol class="breadcrumb my-4">
+      <li class="breadcrumb-item"><a href="{% url 'show_exam_list' %}">Exams</a></li>
+      <li class="breadcrumb-item">標題: {{ exam.name }}</li>
+    </ol>
 
     {% if not username %}
     <span>please <a href="/login">login</a>
@@ -25,25 +25,35 @@
     <span><a href="/logout">log out</a></span>
     {% endif %}
     <h2>Hi! Wellcome {{ username|default:'Guest' }}</h2>
-    
-    <br><br>
 
-    <table style="width:100%;" border="1">
-      <thead>
-        <tr>
-          <th>列出所有考生</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for user in users %}
-        <tr>
-          <td>
-            <a href="/exams/{{ exam.id }}/users/{{ user.id }}/result">{{ user.name }}</a>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
+    <br><br>
+    <div class="table-responsive">
+
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>第幾次考試</th>
+            <th>姓名</th>
+            <th>考試時間</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in user_list %}
+          <tr>
+            <td>
+              {{ user.0 }}
+            </td>
+            <td>
+              <a href="/exams/{{ exam.id }}/users/{{ user.3 }}/result">{{ user.1 }}</a>
+            </td>
+            <td>
+              {{ user.2 }}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
   </div> <!-- end here -->
 </body>
 
