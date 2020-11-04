@@ -52,6 +52,7 @@ class Option_Users(models.Model):
     option = models.ForeignKey(Options, on_delete=models.CASCADE, related_name = 'option_users')
     question = models.ForeignKey(Questions, on_delete=models.CASCADE, related_name = 'option_users', null = True)
     exam = models.ForeignKey(Exams, on_delete=models.CASCADE, related_name = 'option_users', null = True)
+    user_exam_count = models.IntegerField(default=1)
     created_at = models.DateTimeField(editable=False)
     updated_at = models.DateTimeField(null=True)
 
