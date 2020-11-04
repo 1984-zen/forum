@@ -100,8 +100,8 @@
                 optionList.push($(this).val());
             }
         });
-        let len = $('#media')[0].files.length;
-        for (let i = 0; i < len; i++) {
+        let mediaLen = $('#media')[0].files.length;
+        for (let i = 0; i < mediaLen; i++) {
             media_file = $('#media')[0].files[i];
             form_data.append('media_file', media_file)
         }
