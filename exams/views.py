@@ -35,7 +35,7 @@ def show_exam_user_list(request, exam_id):
         username = ""
     exam = Exams.objects.get(id = exam_id)
     user_list = Option_Users.objects.filter(exam_id = exam_id).values_list('user_exam_count', 'user_id').distinct().values('user_exam_count', 'user_id', 'created_at').order_by('user_id', '-created_at') #用('user_exam_count', 'user_id')分組排序user_exam_count是這位考生考exam的次數
-    #[{'user_exam_count': 4, 'user_id': 1, 'created_at': datetime.datetime(2020, 11, 4, 11, 58, 14)}]>
+    #[{'user_exam_count': 4, 'user_id': 1, 'created_at': datetime.datetime(2020, 11, 4, 11, 58, 14)}]
     user_list_get_name = []
     for user in user_list:
         user_name = Users.objects.get(id = user['user_id'])
@@ -178,13 +178,13 @@ def user_answers(request, exam_id):
         create_option_users.save()
     return HttpResponse("Test result has been sent successfully.<a href=\"/exams\">Go back to exam list</a>")
 
-def show_user_exam_result(request, exam_id, user_id):
+def show_user_exam_result(request, exam_id, user_id, user_exam_count):
     username = Users.objects.get(id = user_id)
     exam = Exams.objects.get(id = exam_id)
     questions = Questions.objects.filter(exam_id = exam_id)
     videos = exam.exam_files.filter(type = 'media')
     images = exam.exam_files.filter(type = 'image')
-    user_answers = Option_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id)
+    user_answers = Option_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(user_exam_count = user_exam_count)
     user_answer_list = []
     for user in user_answers:
         user_answer_list.append(user.option_id)
