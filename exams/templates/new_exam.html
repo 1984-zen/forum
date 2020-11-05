@@ -37,7 +37,7 @@
                 <div class="form-contact" id="form-contact-1">
                     <p><b>is_Answer/ Option</b></p>
                     <input type="checkbox" id=0 placeholder="answer">
-                    <input type="text" option-tag-id="" placeholder="option">
+                    <input type="text" option-tag-id="" placeholder="option" required>
                 </div>
                 <!-- We'll be adding additional inputs here -->
             </div>
@@ -150,6 +150,7 @@
         $(inputName).attr('type', 'text');
         $(inputName).attr('option-tag-id', '');
         $(inputName).attr('placeholder', 'option');
+        $(inputName).attr('required', true);
         $(inputName).appendTo($(addBlock));
         $(addBlock).appendTo($('.form-contacts-container'));
         $('#contacts').val(total);
