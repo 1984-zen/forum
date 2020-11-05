@@ -28,27 +28,26 @@
 
         <br>
 
-        <label><b>Question:</b></label>
-        <textarea style="width:100%;" id="question" rows="5"></textarea>
-
-        <div class="form-contacts-container">
-            <div class="form-contact" id="form-contact-1">
-                <p><b>is_Answer/ Option</b></p>
-                <input type="checkbox" id=0 placeholder="answer">
-                <input type="text" option-tag-id="" placeholder="option">
+        <form action="javascript:completeAndRedirect()">{% csrf_token %}
+            <label><b>Question:</b></label>
+            <textarea style="width:100%;" id="question" rows="5" required></textarea>
+            <div class="form-contacts-container">
+                <div class="form-contact" id="form-contact-1">
+                    <p><b>is_Answer/ Option</b></p>
+                    <input type="checkbox" id=0 placeholder="answer">
+                    <input type="text" option-tag-id="" placeholder="option">
+                </div>
+                <!-- We'll be adding additional inputs here -->
             </div>
-            <!-- We'll be adding additional inputs here -->
-        </div>
 
-        <br>
+            <br>
 
-        <div class="form-contacts-add">
-            <input type="button" value="Add More Options" id="add-options">
-        </div>
+            <div class="form-contacts-add">
+                <input type="button" value="Add More Options" id="add-options">
+            </div>
 
-        <br>
+            <br>
 
-        <form enctype="multipart/form-data">{% csrf_token %}
             <ul>
                 <li>
                     <span>上傳影片(可多選, 檔案格式 .mp4)</span>
@@ -59,9 +58,9 @@
                     <input type="file" id="image" name="image" accept="image/jpeg, image/png, image/jpg" multiple>
                 </li>
             </ul>
-        </form>
 
-        <button type="submit" id="submit-exam" exam_id="{{ exam_id }}">Add in below</button>
+            <button type="submit" id="submit-exam" exam_id="{{ exam_id }}">Add in below</button>
+        </form>
 
         <br><br>
 
@@ -88,7 +87,8 @@
                 <tr>
                     <td style="width:8%">
                         <strong>Question</strong>
-                        <a href="/exams/{{ q.exam_id }}/questions/{{ q.id }}/delete"><button>Delete question</button></a>
+                        <a href="/exams/{{ q.exam_id }}/questions/{{ q.id }}/delete"><button>Delete
+                                question</button></a>
                     </td>
                     <td>
                         <p style="color: blue;">{{ q.question }}</p>
@@ -153,7 +153,6 @@
     </div> <!-- end here -->
 </body>
 
-
 <script type="text/javascript">
     let total = 0; //流水號從零開始，搭配optionList[]的index
     let answerList = ['False']; //預設第一筆的checkbox是未打勾=false
@@ -182,11 +181,10 @@
         // these HTTP methods do not require CSRF protection
         return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
     }
-    
+
     let csrftoken = getCookie('csrftoken');
 
-    $(document).on('click', '#submit-exam', function (e) {
-        e.preventDefault();
+    function completeAndRedirect() {
         $("[option-tag-id]").each(function () { //拿到所有的options[]
             if ($(this).val()) {
                 optionList.push($(this).val());
@@ -223,10 +221,10 @@
                 window.location.href = '/exams/new/' + data.exam_id; //這裡拿到後端傳過來的exam_id，寫進data裡面
             }
         });
-    })
+        e.preventDefault();
+    }
 
     $(document).on('click', '#add-options', function (e) {
-        e.preventDefault();
         var addBlockId = total = total + 1;
         answerList.push('False');
         var addBlock = document.createElement('div');
@@ -244,7 +242,7 @@
         $(inputName).appendTo($(addBlock));
         $(addBlock).appendTo($('.form-contacts-container'));
         $('#contacts').val(total);
-
+        e.preventDefault();
     });
 
     $(document).on('change', function () {

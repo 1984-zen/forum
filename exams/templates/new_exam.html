@@ -25,26 +25,28 @@
         <span><a href="/logout">log out</a></span>
         {% endif %}
         <h2>Hi! Wellcome {{ username|default:'Guest' }}</h2><br>
-        <label><b>Exam Title:</b></label>
-        <textarea style="width:100%;" id="exam_title" rows="1"></textarea>
-        <label><b>Question:</b></label>
-        <textarea style="width:100%;" id="question" rows="5"></textarea>
 
-        <div class="form-contacts-container">
-            <div class="form-contact" id="form-contact-1">
-                <p><b>is_Answer/ Option</b></p>
-                <input type="checkbox" id=0 placeholder="answer">
-                <input type="text" option-tag-id="" placeholder="option">
+        <br>
+
+        <form action="javascript:completeAndRedirect()">{% csrf_token %}
+            <label><b>Exam Title:</b></label>
+            <textarea style="width:100%;" id="exam_title" rows="1" required></textarea>
+            <label><b>Question:</b></label>
+            <textarea style="width:100%;" id="question" rows="5" required></textarea>
+            <div class="form-contacts-container">
+                <div class="form-contact" id="form-contact-1">
+                    <p><b>is_Answer/ Option</b></p>
+                    <input type="checkbox" id=0 placeholder="answer">
+                    <input type="text" option-tag-id="" placeholder="option">
+                </div>
+                <!-- We'll be adding additional inputs here -->
             </div>
-            <!-- We'll be adding additional inputs here -->
-        </div>
-        <div class="form-contacts-add">
-            <input type="button" value="Add More Options" id="add-options">
-        </div>
+            <div class="form-contacts-add">
+                <input type="button" value="Add More Options" id="add-options">
+            </div>
 
-        <br><br>
+            <br><br>
 
-        <form enctype="multipart/form-data">{% csrf_token %}
             <ul>
                 <li>
                     <span>上傳影片(可多選, 檔案格式.mp4)</span>
@@ -55,10 +57,9 @@
                     <input type="file" id="image" name="image" accept="image/jpeg, image/png, image/jpg" multiple>
                 </li>
             </ul>
+
+            <button type="submit" id="submit-exam">Create</button>
         </form>
-
-        <button type="submit" id="submit-exam">Create</button>
-
     </div> <!-- end here -->
 </body>
 
@@ -90,11 +91,10 @@
         // these HTTP methods do not require CSRF protection
         return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
     }
-    
+
     let csrftoken = getCookie('csrftoken');
 
-    $(document).on('click', '#submit-exam', function (e) {
-        e.preventDefault();
+    function completeAndRedirect() {
         $("[option-tag-id]").each(function () { //拿到所有的options[]
             if ($(this).val()) {
                 optionList.push($(this).val());
@@ -132,10 +132,10 @@
                 window.location.href = '/exams/new/' + data.exam_id; //這裡拿到後端傳過來的exam_id，寫進data裡面
             }
         });
-    })
+        e.preventDefault();
+    }
 
     $(document).on('click', '#add-options', function (e) {
-        e.preventDefault();
         var addBlockId = total = total + 1;
         answerList.push('False');
         var addBlock = document.createElement('div');
@@ -153,7 +153,7 @@
         $(inputName).appendTo($(addBlock));
         $(addBlock).appendTo($('.form-contacts-container'));
         $('#contacts').val(total);
-
+        e.preventDefault();
     });
 
     $(document).on('change', function () {
