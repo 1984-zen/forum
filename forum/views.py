@@ -7,19 +7,14 @@ import datetime
 import os
 from django.http import FileResponse
 from django.db.utils import DatabaseError, IntegrityError
+from django.template.response import TemplateResponse
 from django.contrib import messages
 
 def show_boards(request):
     boards = Boards.objects.all().order_by('-created_at')
     count_posts = Posts.objects.all().count()
     user_id = request.session.get('user_id')
-    has_user = Users.objects.filter(id = user_id).count()
-    if(has_user):
-        user = Users.objects.get(id = user_id)
-        username = user.name
-    else:
-        username = ""
-    return render(request, 'board.html', {'boards': boards, 'user_id': user_id, 'username': username, 'count_posts': count_posts})
+    return TemplateResponse(request, 'board.html', {'boards': boards, 'user_id': user_id, 'count_posts': count_posts})
 
 def show_posts(request, board_id):
     board = Boards.objects.get(id = board_id)
@@ -30,13 +25,7 @@ def show_posts(request, board_id):
             if(category.id == post.id):
                 post.category_color_code = category.category_color_code
     user_id = request.session.get('user_id')
-    has_user = Users.objects.filter(id = user_id).count()
-    if(has_user):
-        user = Users.objects.get(id = user_id)
-        username = user.name
-    else:
-        username = ""
-    return render(request, 'posts.html', {'posts': posts, 'board_id': board_id, 'user_id': user_id, 'board': board, 'username': username, 'categorys': categorys})
+    return TemplateResponse(request, 'posts.html', {'posts': posts, 'board_id': board_id, 'user_id': user_id, 'board': board, 'categorys': categorys})
 
 def new_post(request, board_id):
     if(request.method == 'POST'):
@@ -81,13 +70,7 @@ def show_recommands(request, board_id, post_id):
     post = Posts.objects.get(id = post_id)
     recommands = post.recommands.all().order_by('-created_at')
     user_id = request.session.get('user_id')
-    has_user = Users.objects.filter(id = user_id).count()
-    if(has_user):
-        user = Users.objects.get(id = user_id)
-        username = user.name
-    else:
-        username = ""
-    return render(request, 'recommands.html', {'post_id': post_id, 'recommands': recommands, 'post' : post, 'user_id': user_id, 'board': board, 'username': username})
+    return TemplateResponse(request, 'recommands.html', {'post_id': post_id, 'recommands': recommands, 'post' : post, 'user_id': user_id, 'board': board})
 
 def new_recommand(request, board_id, post_id,):
     title = request.POST.get("title")
@@ -130,10 +113,12 @@ def update_post(request, board_id, post_id):
         Posts.objects.filter(id = post_id).update(title = title, content = content, pref = is_on_top, category = category)
         return HttpResponseRedirect(reverse("show_posts", kwargs={"board_id": board_id}))
     return render(request, 'posts_update.html', {'board_id': board_id, 'post_id': post_id, 'title': title, 'content': content, 'post': post})
+
 def delete_recommand(request, board_id, post_id, recommand_id):
     recommand = Recommands.objects.get(id = recommand_id)
     recommand.delete()
     return HttpResponseRedirect(reverse("show_recommands", kwargs={"board_id": board_id, "post_id": post_id}))
+    
 def update_recommand(request, board_id, post_id, recommand_id):
     Recommand = Recommands.objects.get(id = recommand_id)
     title = Recommand.title

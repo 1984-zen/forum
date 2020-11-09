@@ -31,7 +31,22 @@ class CheckUserAuthorizationMiddleware:
         # process_view() is called just before Django calls the view.
         # It should return either None or an HttpResponse object
         user_id = request.session.get('user_id')
+        has_user = Users.objects.filter(id = user_id).count()
         is_admin = Users.objects.filter(id = user_id).filter(is_admin = 1).count()
+        
+        if (view_func.__name__ == "new_recommand"):
+            if(has_user): #如果具有admin身分
+                return None # 回傳None可以繼續往下一個middleware走
+            else: #如果不具有admin身分的話
+                messages.error(request, "you have no authority to access this router, please log in")
+                return HttpResponseRedirect(reverse("show_exam_list"))
+
+        if (view_func.__name__ == "new_post"):
+            if(has_user): #如果具有admin身分
+                return None # 回傳None可以繼續往下一個middleware走
+            else: #如果不具有admin身分的話
+                messages.error(request, "you have no authority to access this router, please log in")
+                return HttpResponseRedirect(reverse("show_exam_list"))
 
         if (view_func.__name__ == "show_user_exam_result"):
             if(is_admin): #如果具有admin身分

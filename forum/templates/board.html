@@ -1,24 +1,27 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
-    <title>Boards</title>
-  </head>
-  <body>
-  <div class="container"> <!-- staart here -->
-   <img src="{% static "img/board_img.jpg" %}" width="1024" height="576">
-      <ol class="breadcrumb my-4">
-        <li class="breadcrumb-item">Boards</li>
-      </ol>
-  
-    {% if not username %}
-    <span>please <a href = "/login">login</a></span>
+
+<head>
+  <meta charset="utf-8">
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+  <title>Boards</title>
+</head>
+
+<body>
+  <div class="container">
+    <!-- staart here -->
+    <img src="{% static "img/board_img.jpg" %}" width="1024" height="576">
+    <ol class="breadcrumb my-4">
+      <li class="breadcrumb-item">Boards</li>
+    </ol>
+
+    {% if not user_name %}
+    <span>please <a href="/login">login</a></span>
     {% else %}
-    <span><a href = "/logout">log out</a></span>
+    <span><a href="/logout">log out</a></span>
     {% endif %}
-    <h2>Hi! Wellcome {{ username|default:'Guest' }}</h2><br>
+    <h2>Hi! Wellcome {{ user_name|default:'Guest' }}</h2><br>
     <table style="width:100%;" border="1">
       <thead>
         <tr>
@@ -28,15 +31,16 @@
       </thead>
       <tbody>
         {% for board in boards %}
-          <tr>
-            <td>
-            <a href="/boards/{{ board.id }}/posts" >{{ board.name }}</a><br>
-            </td>
-            <td>{{ count_posts }}</td>
-          </tr>
+        <tr>
+          <td>
+            <a href="/boards/{{ board.id }}/posts">{{ board.name }}</a><br>
+          </td>
+          <td>{{ count_posts }}</td>
+        </tr>
         {% endfor %}
       </tbody>
     </table>
-    </div> <!-- end here -->
-  </body>
+  </div> <!-- end here -->
+</body>
+
 </html>
