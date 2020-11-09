@@ -5,6 +5,16 @@ from django.urls import reverse
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib import messages
 
+def index(request):
+    user_id = request.session.get('user_id')
+    has_user = Users.objects.filter(id = user_id).count()
+    if(has_user):
+        user = Users.objects.get(id = user_id)
+        username = user.name
+    else:
+        username = ""
+    return render(request, 'index.html', {'username': username})
+
 def register(request):
     if(request.method == 'POST'):
         account = request.POST.get("account")
@@ -33,17 +43,15 @@ def login_post(request):
         try:
             account = request.POST.get("account")
             password = request.POST.get("password")
-            Users.objects.get(account = account)
-        except Users.DoesNotExist:
-            messages.error(request, "account or password is wrong!")
-            return HttpResponseRedirect(reverse("login"))
-        else:
             user = Users.objects.get(account = account)
             if(check_password(password, user.password)):
                 request.session['user_id'] = user.id
-                return HttpResponseRedirect(reverse("show_boards"))
+                return HttpResponseRedirect(reverse("index")) #登入成功就去index.html
             else:
                 messages.error(request, "account or password is wrong!")
+            return HttpResponseRedirect(reverse("login"))
+        except Users.DoesNotExist:
+            messages.error(request, "account or password is wrong!")
             return HttpResponseRedirect(reverse("login"))
     return render(request, 'login.html')
 
