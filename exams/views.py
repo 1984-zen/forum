@@ -142,12 +142,6 @@ def show_user_exam_result(request, exam_id, user_id, user_exam_count):
     return TemplateResponse(request, 'show_user_exam_result.html', {'questions': questions, 'user_answer_list': user_answer_list, 'videos': videos, 'images': images, 'exam': exam})
 
 def delete_question(request, exam_id, question_id):
-    question_files = Exam_files.objects.filter(question_id = question_id)
-    question_files.delete()
-    option_users = Option_Users.objects.filter(question_id = question_id)
-    option_users.delete()
-    options = Options.objects.filter(question_id = question_id)
-    options.delete()
     question = Questions.objects.filter(id = question_id)
     question.delete()
     return HttpResponseRedirect(reverse("add_more_questions", kwargs={"exam_id": exam_id}))
