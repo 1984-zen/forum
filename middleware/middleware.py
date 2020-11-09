@@ -31,7 +31,7 @@ class CheckUserAuthorizationMiddleware:
         # process_view() is called just before Django calls the view.
         # It should return either None or an HttpResponse object
         user_id = request.session.get('user_id')
-        is_admin = Users.objects.filter(id = user_id).filter(isadmin = 1).count()
+        is_admin = Users.objects.filter(id = user_id).filter(is_admin = 1).count()
 
         if (view_func.__name__ == "show_user_exam_result"):
             if(is_admin): #如果具有admin身分
@@ -86,7 +86,7 @@ class CheckUserAuthorizationMiddleware:
         if(has_user):
             user_name = Users.objects.get(id = user_id)
             response.context_data["user_name"] = user_name #把user_name會透過view的TemplateResponse去傳到全部template
-        is_admin = Users.objects.filter(id = user_id).filter(isadmin = 1).count()
+        is_admin = Users.objects.filter(id = user_id).filter(is_admin = 1).count()
         if(is_admin):
             response.context_data["is_admin"] = True
         return response

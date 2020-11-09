@@ -5,7 +5,7 @@ class Users(models.Model):
     name = models.CharField(max_length=30)
     account = models.CharField(max_length=30, unique=True)
     password = models.CharField(max_length=255)
-    isadmin = models.IntegerField(default=0)
+    is_admin = models.IntegerField(default=0)
     created_at = models.DateTimeField(default= dateformat.format(timezone.now(), 'Y-m-d H:i:s'))
     updated_at = models.DateTimeField(null=True)
     
