@@ -18,13 +18,12 @@
             <li class="breadcrumb-item">Add or Edit: {{ exam.name }}</li>
         </ol>
 
-        {% if not username %}
-        <span>please <a href="/login">login</a>
-            <!--/ <a href = "/register">register</a> --></span>
+        {% if not user_name %}
+        <span>please <a href="/login">login</a></span>
         {% else %}
         <span><a href="/logout">log out</a></span>
         {% endif %}
-        <h2>Hi! Wellcome {{ username|default:'Guest' }}</h2>
+        <h2>Hi! Wellcome {{ user_name|default:'Guest' }}</h2>
 
         <br>
 
@@ -92,7 +91,6 @@
                     </td>
                     <td>
                         <p style="color: blue;">{{ q.question }}</p>
-                        <!-- <small style="color: #888">{{ board.description }}</small>-->
                         {% if videos %}
                         {% for v in videos %}
                         {% if v.question_id == q.id %}
@@ -218,7 +216,15 @@
             processData: false,
             data: form_data,
             success: function (data) {
-                window.location.href = '/exams/new/' + data.exam_id; //這裡拿到後端傳過來的exam_id，寫進data裡面
+                if (data.exam_id) {
+                    window.location.href = '/exams/new/' + data.exam_id; //這裡拿到後端傳過來的exam_id，寫進data裡面
+                }
+                else if (data.redirect) {
+                    window.location.href = data.redirect;
+                }
+                else {
+                    window.location.href = '/exams'
+                }
             }
         });
         e.preventDefault();

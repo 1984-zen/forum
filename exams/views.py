@@ -13,26 +13,13 @@ from django.http import HttpResponse
 import json
 from django.conf import settings
 from django.utils import timezone, dateformat
+from django.template.response import TemplateResponse
 
 def show_exam_list(request):
-    user_id = request.session.get('user_id')
-    has_user = Users.objects.filter(id = user_id).count()
-    if(has_user):
-        user = Users.objects.get(id = user_id)
-        username = user.name
-    else:
-        username = ""
     exam_list = Exams.objects.all().order_by('-created_at')
-    return render(request, 'exam_list.html', {'exam_list': exam_list, 'username': username})
+    return TemplateResponse(request, 'exam_list.html', {'exam_list': exam_list})
 
 def show_exam_user_list(request, exam_id):
-    user_id = request.session.get('user_id')
-    has_user = Users.objects.filter(id = user_id).count()
-    if(has_user):
-        user = Users.objects.get(id = user_id)
-        username = user.name
-    else:
-        username = ""
     exam = Exams.objects.get(id = exam_id)
     user_list = Option_Users.objects.filter(exam_id = exam_id).values_list('user_exam_count', 'user_id').distinct().values('user_exam_count', 'user_id', 'created_at').order_by('user_id', '-created_at') #用('user_exam_count', 'user_id')分組排序user_exam_count是這位考生考exam的次數
     #[{'user_exam_count': 4, 'user_id': 1, 'created_at': datetime.datetime(2020, 11, 4, 11, 58, 14)}]
@@ -41,27 +28,12 @@ def show_exam_user_list(request, exam_id):
         user_name = Users.objects.get(id = user['user_id'])
         user_list_get_name.append((user['user_exam_count'], user_name, user['created_at'].strftime('%Y-%m-%d %H:%M'), user['user_id']))
         #[(4, <Users: zen>, '2020-11-04')]
-    return render(request, 'exam_user_list.html', {'user_list': user_list_get_name, 'exam': exam, 'username': username})
+    return TemplateResponse(request, 'exam_user_list.html', {'user_list': user_list_get_name, 'exam': exam})
 
 def new_exam(request):
-    user_id = request.session.get('user_id')
-    has_user = Users.objects.filter(id = user_id).count()
-    if(has_user):
-        user = Users.objects.get(id = user_id)
-        username = user.name
-    else:
-        username = ""
     return render(request, 'new_exam.html', {'username': username})
 
 def get_ajax_answers_options(request):
-    user_id = request.session.get('user_id')
-    has_user = Users.objects.filter(id = user_id).count()
-    if(has_user):
-        user = Users.objects.get(id = user_id)
-        username = user.name
-    else:
-        username = ""
-   
     question = request.POST.get("question")
     option_list = request.POST.get("option_list").split(',') #因為從前端接收到的值= True,False所以用split(',')變成['True', 'False']
     answer_list = request.POST.get("answer_list").split(',') #因為從前端接收到的值= True,False所以用split(',')變成['True', 'False']
@@ -133,40 +105,20 @@ def handle_uploaded_image_file(i):
     return i.name, file_relative_path
 
 def add_exam_questions(request, exam_id):
-    user_id = request.session.get('user_id')
-    has_user = Users.objects.filter(id = user_id).count()
-    if(has_user):
-        user = Users.objects.get(id = user_id)
-        username = user.name
-    else:
-        username = ""
     exam = Exams.objects.get(id = exam_id)
     questions = exam.questions.all()
     videos = exam.exam_files.filter(type = 'media')
     images = exam.exam_files.filter(type = 'image')
-    return render(request, 'add_exam_questions.html', {'exam_id': exam_id, 'username': username, 'exam': exam, 'questions': questions, 'videos': videos, 'images': images})
+    return TemplateResponse(request, 'add_exam_questions.html', {'exam_id': exam_id, 'exam': exam, 'questions': questions, 'videos': videos, 'images': images})
 
 def show_exam(request, exam_id):
-    user_id = request.session.get('user_id')
-    has_user = Users.objects.filter(id = user_id).count()
-    if(has_user):
-        user = Users.objects.get(id = user_id)
-        username = user.name
-    else:
-        username = ""
     exam = Exams.objects.get(id = exam_id)
     questions = exam.questions.all()
     videos = exam.exam_files.filter(type = 'media')
-    return render(request, 'show_exam.html', {'exam_id': exam_id, 'username': username, 'exam': exam, 'exam_id': exam_id, 'questions': questions, 'videos': videos})
+    return TemplateResponse(request, 'show_exam.html', {'exam_id': exam_id, 'exam': exam, 'exam_id': exam_id, 'questions': questions, 'videos': videos})
 
 def user_answers(request, exam_id):
     user_id = request.session.get('user_id')
-    has_user = Users.objects.filter(id = user_id).count()
-    if(has_user):
-        user = Users.objects.get(id = user_id)
-        username = user.name
-    else:
-        username = ""
     exam_id = exam_id
     create_exam_users = Exam_Users(user_id = user_id, exam_id = exam_id, date = datetime.datetime.now())
     create_exam_users.save()
@@ -179,7 +131,6 @@ def user_answers(request, exam_id):
     return HttpResponse("Test result has been sent successfully.<a href=\"/exams\">Go back to exam list</a>")
 
 def show_user_exam_result(request, exam_id, user_id, user_exam_count):
-    username = Users.objects.get(id = user_id)
     exam = Exams.objects.get(id = exam_id)
     questions = Questions.objects.filter(exam_id = exam_id)
     videos = exam.exam_files.filter(type = 'media')
@@ -188,7 +139,7 @@ def show_user_exam_result(request, exam_id, user_id, user_exam_count):
     user_answer_list = []
     for user in user_answers:
         user_answer_list.append(user.option_id)
-    return render(request, 'show_user_exam_result.html', {'username': username, 'questions': questions, 'user_answer_list': user_answer_list, 'videos': videos, 'images': images, 'exam': exam})
+    return TemplateResponse(request, 'show_user_exam_result.html', {'questions': questions, 'user_answer_list': user_answer_list, 'videos': videos, 'images': images, 'exam': exam})
 
 def delete_question(request, exam_id, question_id):
     question_files = Exam_files.objects.filter(question_id = question_id)

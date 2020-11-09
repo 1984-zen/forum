@@ -1,115 +1,123 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
-    <meta charset="utf-8">
-    <title>Posts</title>
-  </head>
-  <body>
-  <div class="container"> <!--start here -->
-  <img src="{% static "img/post_img.jpg" %}" width="1024" height="509">
-  <br>
-  {% if not username %}
-  <span>please <a href = "/login">login</a><!--/ <a href = "/register">register</a> --></span>
-  {% else %}
-  <span><a href = "/logout">log out</a></span>
-  {% endif %}
-  <h2>Hi! Wellcome {{ username|default:'Guest' }}</h2>
-    
-      <ol class="breadcrumb my-4">
-        <li class="breadcrumb-item"><a href = "{% url 'show_boards' %}">Boards</a></li>
-        <li class="breadcrumb-item active">{{ board.name }}</li>
-      </ol>
-    
-     <form method="post" action="posts/new" enctype="multipart/form-data">{% csrf_token %}
-     <fieldset id="on_top_status">   
-  <input type="radio" name="on_top_status" value="N" id="status_no" Checked><label for="status_no"><b>非置頂</b></label>
-  <input type="radio" name="on_top_status" value="Y" id="status_yes"><label for="status_yes"><b>置頂</b></label>
-  </fieldset>
-  <label for="category"><b>Choose a Category:</b></label>
-  <select name="category" id="category">
-    <option value="null">None</option>
-    <option value="medical">Medical</option>
-    <option value="others">Others</option>
-  </select>
-    <div>
-      <label><b>Title:</b></label>
-      <input style="width:100%;" type="text" name="title">
-    </div>
-    <ul class="messages">
-      {% for message in messages %}
-      <li style="color: red">{{ message }}</li>
-      {% endfor %}
-    </ul>
-    
-    <div>
-      <label><b>Content:</b></label>
-      <textarea style="width:100%;" name="content" rows="5"></textarea>
-    </div>
-        <input type="file" name="myfile" multiple>
-    <button type="submit">Post</button>
-  </form>
-  <br><br>
-    <table  style="width:100%;" border="1">
+
+<head>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+  <meta charset="utf-8">
+  <title>Posts</title>
+</head>
+
+<body>
+  <div class="container">
+    <!--start here -->
+    <img src="{% static "img/post_img.jpg" %}" width="1024" height="509">
+    <br>
+    {% if not username %}
+    <span>please <a href="/login">login</a></span>
+    {% else %}
+    <span><a href="/logout">log out</a></span>
+    {% endif %}
+    <h2>Hi! Wellcome {{ username|default:'Guest' }}</h2>
+
+    <ol class="breadcrumb my-4">
+      <li class="breadcrumb-item"><a href="{% url 'show_boards' %}">Boards</a></li>
+      <li class="breadcrumb-item active">{{ board.name }}</li>
+    </ol>
+
+    <form method="post" action="posts/new" enctype="multipart/form-data">{% csrf_token %}
+      <fieldset id="on_top_status">
+        <input type="radio" name="on_top_status" value="N" id="status_no" Checked><label
+          for="status_no"><b>非置頂</b></label>
+        <input type="radio" name="on_top_status" value="Y" id="status_yes"><label for="status_yes"><b>置頂</b></label>
+      </fieldset>
+      <label for="category"><b>Choose a Category:</b></label>
+      <select name="category" id="category">
+        <option value="null">None</option>
+        <option value="medical">Medical</option>
+        <option value="others">Others</option>
+      </select>
+      <div>
+        <label><b>Title:</b></label>
+        <input style="width:100%;" type="text" name="title">
+      </div>
+      {% if messages %}
+      <div class="alert alert-warning" role="alert" style="text-align: center;">
+        {% for message in messages %}
+        {{ message }}
+        {% endfor %}
+      </div>
+      {% endif %}
+
+      <div>
+        <label><b>Content:</b></label>
+        <textarea style="width:100%;" name="content" rows="5"></textarea>
+      </div>
+      <input type="file" name="myfile" multiple>
+      <button type="submit">Post</button>
+    </form>
+    <br><br>
+    <table style="width:100%;" border="1">
       <thead>
         <tr>
-        <th>Status</th>
-        <th>Category</th>
-        <th>Author</th>
-        <th>Title</th>
-        <th>content</th>
-        <th>attachment</th>
-        <th>update</th>
-        <th>delte post</th>
-        <th>create time</th>
+          <th>Status</th>
+          <th>Category</th>
+          <th>Author</th>
+          <th>Title</th>
+          <th>content</th>
+          <th>attachment</th>
+          <th>update</th>
+          <th>delte post</th>
+          <th>create time</th>
         </tr>
       </thead>
       <tbody>
-      {% for post in posts %}
-      
+        {% for post in posts %}
+
         <tr style="background-color:{{ post.category_color_code }}">
-            {% if post.pref == "Y" %}
-            <td>置頂</td>
-            {% else %}
-            <td></td>
-            {% endif %}
-            {% if post.category == "null" %}
-            <td></td>
-            {% else %}
-            <td>{{ post.category }}</td>
-            {% endif %}
-            <td>{{ post.user.name }}</td>
-            <td><a href = "posts/{{ post.id }}/recommands">{{ post.title }}</td>
-            <td>{{ post.content }}</td>
-            {% if post.user_id == user_id %}
-            <td>
+          {% if post.pref == "Y" %}
+          <td>置頂</td>
+          {% else %}
+          <td></td>
+          {% endif %}
+          {% if post.category == "null" %}
+          <td></td>
+          {% else %}
+          <td>{{ post.category }}</td>
+          {% endif %}
+          <td>{{ post.user.name }}</td>
+          <td><a href="posts/{{ post.id }}/recommands">{{ post.title }}</td>
+          <td>{{ post.content }}</td>
+          {% if post.user_id == user_id %}
+          <td>
             {% for file in post.post_files.all %}
-                <span>{{ file.name }}</span><span>(<a href = "/download/{{ file.file_path }}">download</a>)(<a href = "/boards/{{post.board_id}}/posts/{{post.id}}/file/{{file.id}}/delete">delete</a>)<br></span>
+            <span>{{ file.name }}</span><span>(<a href="/download/{{ file.file_path }}">download</a>)(<a
+                href="/boards/{{post.board_id}}/posts/{{post.id}}/file/{{file.id}}/delete">delete</a>)<br></span>
             {% endfor %}
-            </td>
-            {% else %}
-            <td>
+          </td>
+          {% else %}
+          <td>
             {% for file in post.post_files.all %}
-                <span>{{ file.name }}</span><span>(<a href = "/download/{{ file.file_path }}">download</a>)<br></span>
+            <span>{{ file.name }}</span><span>(<a href="/download/{{ file.file_path }}">download</a>)<br></span>
             {% endfor %}
-            </td>
-            {% endif %}
-            {% if post.user_id == user_id %}
-            <td>(<a href = "/boards/{{post.board_id}}/posts/{{post.id}}/update">update</a>)</td>
-            {% else %}
-            <td></td>
-            {% endif %}
-            {% if post.user_id == user_id %}
-            <td><span>(<a href = "/boards/{{post.board_id}}/posts/{{post.id}}/delete">delete</a>)</span></td>
-            {% else %}
-            <td></td>
-            {% endif %}
-            <td>{{ post.created_at}}</td>
+          </td>
+          {% endif %}
+          {% if post.user_id == user_id %}
+          <td>(<a href="/boards/{{post.board_id}}/posts/{{post.id}}/update">update</a>)</td>
+          {% else %}
+          <td></td>
+          {% endif %}
+          {% if post.user_id == user_id %}
+          <td><span>(<a href="/boards/{{post.board_id}}/posts/{{post.id}}/delete">delete</a>)</span></td>
+          {% else %}
+          <td></td>
+          {% endif %}
+          <td>{{ post.created_at}}</td>
         </tr>
-      {% endfor %}
-    </tbody>
+        {% endfor %}
+      </tbody>
     </table>
-    </div> <!-- end here -->
-  </body>
+  </div> <!-- end here -->
+</body>
+
 </html>

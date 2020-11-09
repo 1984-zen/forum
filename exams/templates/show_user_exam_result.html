@@ -19,13 +19,12 @@
             <li class="breadcrumb-item">{{ username }} 的考試結果</li>
         </ol>
 
-        {% if not username %}
-        <span>please <a href="/login">login</a>
-            <!--/ <a href = "/register">register</a> --></span>
+        {% if not user_name %}
+        <span>please <a href="/login">login</a></span>
         {% else %}
         <span><a href="/logout">log out</a></span>
         {% endif %}
-        <h2>Hi! Wellcome {{ username|default:'Guest' }}</h2><br>
+        <h2>Hi! Wellcome {{ user_name|default:'Guest' }}</h2><br>
 
         <br><br>
 

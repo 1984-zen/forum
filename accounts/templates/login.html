@@ -1,34 +1,39 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    {% load static %}
-    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
-    <meta charset="utf-8">
-    <title>Sign in</title>
-  </head>
-  <body>
-    <div class="container"> <!-- staart here -->
+
+<head>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+  <meta charset="utf-8">
+  <title>Sign in</title>
+</head>
+
+<body>
+  <div class="container">
+    <!-- staart here -->
     <h1>Sign in</h1>
     <form method="post" action="/login/method_post" enctype="multipart/form-data">{% csrf_token %}
-    <div>
-      <label>account</label>
-      <input type="text" name="account" required="true">
+      <div>
+        <label>account</label>
+        <input type="text" name="account" required="true">
+      </div>
+      <br>
+
+      <div>
+        <label>password</label>
+        <input type="password" name="password" required="true">
+      </div>
+      <br>
+      <button type="submit">send</button>
+    </form>
+    {% if messages %}
+    <div class="alert alert-warning" role="alert" style="text-align: center;">
+      {% for message in messages %}
+      {{ message }}
+      {% endfor %}
     </div>
-    <br>
-    
-    <div>
-      <label>password</label>
-       <input type="password" name="password" required="true">
-    </div>
-        <br>
-    <button type="submit">send</button>
-  </form>
-  <ul class="messages">
-  {% for message in messages %}
-  <li style="color: red">{{ message }}</li>
-  {% endfor %}
-</ul>
-  <!--<span>or <a href = "/register">Register</a></span>-->
+    {% endif %}
   </div> <!-- end here -->
-  </body>
+</body>
+
 </html>

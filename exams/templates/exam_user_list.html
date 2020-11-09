@@ -13,18 +13,25 @@
 <body>
   <div class="container">
     <!-- start here -->
+    {% if messages %}
+    <div class="alert alert-warning" role="alert" style="text-align: center;">
+      {% for message in messages %}
+      {{ message }}
+      {% endfor %}
+    </div>
+    {% endif %}
+
     <ol class="breadcrumb my-4">
       <li class="breadcrumb-item"><a href="{% url 'show_exam_list' %}">Exams</a></li>
       <li class="breadcrumb-item">標題: {{ exam.name }}</li>
     </ol>
 
-    {% if not username %}
-    <span>please <a href="/login">login</a>
-      <!--/ <a href = "/register">register</a> --></span>
+    {% if not user_name %}
+    <span>please <a href="/login">login</a></span>
     {% else %}
     <span><a href="/logout">log out</a></span>
     {% endif %}
-    <h2>Hi! Wellcome {{ username|default:'Guest' }}</h2>
+    <h2>Hi! Wellcome {{ user_name|default:'Guest' }}</h2>
 
     <br><br>
     <div class="table-responsive">

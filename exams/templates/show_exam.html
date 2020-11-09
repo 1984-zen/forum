@@ -18,13 +18,12 @@
         <li class="breadcrumb-item">開始作答</li>
       </ol>
 
-        {% if not username %}
-        <span>please <a href="/login">login</a>
-            <!--/ <a href = "/register">register</a> --></span>
+        {% if not user_name %}
+        <span>please <a href="/login">login</a></span>
         {% else %}
         <span><a href="/logout">log out</a></span>
         {% endif %}
-        <h2>Hi! Wellcome {{ username|default:'Guest' }}</h2><br>
+        <h2>Hi! Wellcome {{ user_name|default:'Guest' }}</h2><br>
 
         <table style="width:100%">
             <thead>
@@ -49,7 +48,6 @@
                         </td>
                         <td>
                             <p style="color: blue;">{{ q.question }}</p>
-                            <!-- <small style="color: #888">{{ board.description }}</small>-->
                             {% if videos %}
                             {% for v in videos %}
                             {% if v.question_id == q.id %}

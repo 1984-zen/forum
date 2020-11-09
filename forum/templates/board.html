@@ -14,7 +14,7 @@
       </ol>
   
     {% if not username %}
-    <span>please <a href = "/login">login</a><!--/ <a href = "/register">register</a> --></span>
+    <span>please <a href = "/login">login</a></span>
     {% else %}
     <span><a href = "/logout">log out</a></span>
     {% endif %}
@@ -31,7 +31,6 @@
           <tr>
             <td>
             <a href="/boards/{{ board.id }}/posts" >{{ board.name }}</a><br>
-             <!-- <small style="color: #888">{{ board.description }}</small>-->
             </td>
             <td>{{ count_posts }}</td>
           </tr>

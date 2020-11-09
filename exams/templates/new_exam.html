@@ -13,22 +13,29 @@
 <body>
     <div class="container">
         <!-- start here -->
+        {% if messages %}
+        <div class="alert alert-warning" role="alert" style="text-align: center;">
+            {% for message in messages %}
+            {{ message }}
+            {% endfor %}
+        </div>
+        {% endif %}
+
         <ol class="breadcrumb my-4">
             <li class="breadcrumb-item"><a href="{% url 'show_exam_list' %}">Exams</a></li>
             <li class="breadcrumb-item">Create a new exam</li>
         </ol>
 
-        {% if not username %}
-        <span>please <a href="/login">login</a>
-            <!--/ <a href = "/register">register</a> --></span>
+        {% if not user_name %}
+        <span>please <a href="/login">login</a></span>
         {% else %}
         <span><a href="/logout">log out</a></span>
         {% endif %}
-        <h2>Hi! Wellcome {{ username|default:'Guest' }}</h2><br>
+        <h2>Hi! Wellcome {{ user_name|default:'Guest' }}</h2><br>
 
         <br>
 
-        <form action="javascript:completeAndRedirect()">{% csrf_token %}
+        <form>{% csrf_token %}
             <label><b>Exam Title:</b></label>
             <textarea style="width:100%;" id="exam_title" rows="1" required></textarea>
             <label><b>Question:</b></label>
@@ -94,7 +101,7 @@
 
     let csrftoken = getCookie('csrftoken');
 
-    function completeAndRedirect() {
+    $(document).on('click', '#submit-exam', function (e) {
         $("[option-tag-id]").each(function () { //拿到所有的options[]
             if ($(this).val()) {
                 optionList.push($(this).val());
@@ -129,11 +136,20 @@
             processData: false,
             data: form_data,
             success: function (data) {
-                window.location.href = '/exams/new/' + data.exam_id; //這裡拿到後端傳過來的exam_id，寫進data裡面
+                if (data.exam_id) {
+                    window.location.href = '/exams/new/' + data.exam_id; //這裡拿到後端傳過來的exam_id，寫進data裡面
+                }
+                else if (data.redirect) {
+                    window.location.href = data.redirect;
+                }
+                else {
+                    window.location.href = '/exams'
+                }
+
             }
         });
         e.preventDefault();
-    }
+    })
 
     $(document).on('click', '#add-options', function (e) {
         var addBlockId = total = total + 1;
