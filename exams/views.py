@@ -14,6 +14,7 @@ import json
 from django.conf import settings
 from django.utils import timezone, dateformat
 from django.template.response import TemplateResponse
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 def show_exam_list(request):
     exam_list = Exams.objects.all().order_by('-created_at')
@@ -114,8 +115,12 @@ def add_exam_questions(request, exam_id):
 def show_exam(request, exam_id):
     exam = Exams.objects.get(id = exam_id)
     questions = exam.questions.all()
+    page = request.GET.get('page', 1)
+    paginator = Paginator(questions, 1)
+    questions_in_page = paginator.page(page)
     videos = exam.exam_files.filter(type = 'media')
-    return TemplateResponse(request, 'show_exam.html', {'exam_id': exam_id, 'exam': exam, 'exam_id': exam_id, 'questions': questions, 'videos': videos})
+    images = exam.exam_files.filter(type = 'image')
+    return TemplateResponse(request, 'show_exam.html', {'exam_id': exam_id, 'exam': exam, 'exam_id': exam_id, 'questions_in_page': questions_in_page, 'videos': videos, 'images': images})
 
 def user_answers(request, exam_id):
     user_id = request.session.get('user_id')

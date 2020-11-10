@@ -13,10 +13,10 @@
 <body>
     <div class="container">
         <!-- start here -->
-      <ol class="breadcrumb my-4">
-        <li class="breadcrumb-item"><a href="{% url 'show_exam_list' %}">Exams</a></li>
-        <li class="breadcrumb-item">開始作答</li>
-      </ol>
+        <ol class="breadcrumb my-4">
+            <li class="breadcrumb-item"><a href="{% url 'show_exam_list' %}">Exams</a></li>
+            <li class="breadcrumb-item">開始作答</li>
+        </ol>
 
         {% if not user_name %}
         <span>please <a href="/login">login</a></span>
@@ -38,8 +38,32 @@
 
         <br>
 
+        {% if questions_in_page.has_other_pages %}
+        
+            {% if questions_in_page.has_previous %}
+            <button><a href="?page={{ questions_in_page.previous_page_number }}">previous_question</a></button>
+            {% else %}
+            <button class="disabled"><span>previous_question</span></button>
+            {% endif %}
+            <!-- {% for i in questions_in_page.paginator.page_range %}
+            {% if questions_in_page.number == i %}
+            <li class="active"><span>{{ i }}, <span class="sr-only">(current)</span></span></li>
+            {% else %}
+            <li><a href="?page={{ i }}">{{ i }}, </a></li>
+            {% endif %}
+            {% endfor %} -->
+            {% if questions_in_page.has_next %}
+            <button style="float: right;"><a href="?page={{ questions_in_page.next_page_number }}">next_page</a></button>
+            {% else %}
+            <button class="disabled"><span>next_page</span></button>
+            {% endif %}
+      
+        {% endif %}
+
+        <br><br>
+
         <form method="post" action="/exams/answer/{{ exam_id }}" enctype="multipart/form-data">{% csrf_token %}
-            {% for q in questions %}
+            {% for q in questions_in_page %}
             <table style="width:100%;" border="1">
                 <tbody>
                     <tr>
@@ -91,12 +115,19 @@
             </table>
             {% endfor %}
 
-            <br>
-            
+
+
+
+
+            <br><br>
+
             <button type="submit">提交答案</button>
         </form>
 
         <br><br>
+
+        
+
     </div> <!-- end here -->
 </body>
 
