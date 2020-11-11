@@ -121,9 +121,9 @@ def show_exam(request, exam_id):
     questions_in_page = paginator.page(page)
     videos = exam.exam_files.filter(type = 'media')
     images = exam.exam_files.filter(type = 'image')
-    exam_users_id = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(status = 0)[0].id
+    exam_users_id = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(status = 0)[0].id #找到user未完成的考卷status = 0
     user_has_been_answered = Option_Users.objects.filter(exam_users_id = exam_users_id).values_list('question_id', flat=True)
-    return TemplateResponse(request, 'show_exam.html', {'exam_id': exam_id, 'exam': exam, 'exam_id': exam_id, 'questions_in_page': questions_in_page, 'videos': videos, 'images': images, 'user_has_been_answered': user_has_been_answered})
+    return TemplateResponse(request, 'show_exam.html', {'user_id': user_id, 'exam_id': exam_id, 'exam': exam, 'exam_id': exam_id, 'questions_in_page': questions_in_page, 'videos': videos, 'images': images, 'user_has_been_answered': user_has_been_answered})
 
 def user_answers(request, exam_id):
     user_id = request.session.get('user_id')
@@ -154,10 +154,12 @@ def user_answers(request, exam_id):
         messages.success(request, "Has sent successfully!")
     return HttpResponseRedirect(current_page)
 
-def user_finish_exam(request, exam_id):
+def user_exam_completed(request, exam_id, user_id):
     user_id = request.session.get('user_id')
     exam_id = exam_id
-    return HttpResponse("Test result has been sent successfully.<a href=\"/exams\">Go back to exam list</a>")
+    update_exam_users_status_to_1 = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(status = 0) #找到user未完成的考卷status = 0
+    update_exam_users_status_to_1.update(status = 1)
+    return HttpResponse("Finished!! All answers have been sent successfully.<a href=\"/exams\">Go back to exam list</a>")
 
 def show_user_exam_result(request, exam_id, user_id, user_exam_count):
     exam = Exams.objects.get(id = exam_id)

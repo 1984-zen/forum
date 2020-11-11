@@ -15,6 +15,7 @@ urlpatterns = [
     path('exams/answer/<int:exam_id>', views.user_answers, name = 'user_answers'),
     path('exams/<int:exam_id>/users', views.show_exam_user_list, name = 'show_exam_user_list'),
     path('exams/<int:exam_id>/users/<int:user_id>/result/<int:user_exam_count>', views.show_user_exam_result, name = 'show_user_exam_result'),
+    path('exams/<int:exam_id>/users/<int:user_id>/exam_completed', views.user_exam_completed, name = 'user_exam_completed'),
     path('exams/<int:exam_id>/questions/<int:question_id>/delete', views.delete_question, name = 'delete_question'),
     path('exams/<int:exam_id>/questions/<int:question_id>/question_files/<int:question_media_id>/delete', views.delete_question_media, name = 'delete_question_media'),
     path('exams/<int:exam_id>/questions/<int:question_id>/question_files/<int:question_image_id>/delete', views.delete_question_image, name = 'delete_question_image'),

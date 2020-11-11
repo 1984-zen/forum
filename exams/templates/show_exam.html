@@ -23,8 +23,8 @@
         <div class="alert alert-warning" role="alert" style="text-align: center;">
             {{ message }}
         </div>
-            {% endif %}
-            {% endfor %}
+        {% endif %}
+        {% endfor %}
         {% endif %}
 
         <ol class="breadcrumb my-4">
@@ -129,20 +129,23 @@
                     </tr>
                 </tbody>
             </table>
-            
+
             <br><br>
-           
+
             {% if q.id in user_has_been_answered %}
             <button disabled="disabled" type="submit">提交答案</button>
             {% else %}
             <button type="submit">提交答案</button>
             {% endif %}
             {% endfor %}
-          
         </form>
 
         <br><br>
-
+        {% if questions_in_page.has_other_pages %}
+        {% if not questions_in_page.has_next %}
+        <a href="{% url 'user_exam_completed' exam_id=exam_id user_id=user_id %}"><button>Completed! 確定交卷</button></a>
+        {% endif %}
+        {% endif %}
     </div> <!-- end here -->
 </body>
 
