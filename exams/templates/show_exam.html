@@ -132,9 +132,13 @@
             
             <br><br>
            
+            {% if q.id in user_has_been_answered %}
+            <button disabled="disabled" type="submit">提交答案</button>
+            {% else %}
             <button type="submit">提交答案</button>
-          
+            {% endif %}
             {% endfor %}
+          
         </form>
 
         <br><br>
