@@ -47,22 +47,6 @@ class Options(models.Model):
         self.updated_at = dateformat.format(timezone.now(), 'Y-m-d H:i:s')
         return super(Options, self).save(*args, **kwargs)
 
-class Option_Users(models.Model):
-    user = models.ForeignKey('accounts.Users', on_delete=models.CASCADE, related_name = 'option_users')
-    option = models.ForeignKey(Options, on_delete=models.CASCADE, related_name = 'option_users')
-    question = models.ForeignKey(Questions, on_delete=models.CASCADE, related_name = 'option_users', null = True)
-    exam = models.ForeignKey(Exams, on_delete=models.CASCADE, related_name = 'option_users', null = True)
-    user_exam_count = models.IntegerField(default=1)
-    created_at = models.DateTimeField(editable=False)
-    updated_at = models.DateTimeField(null=True)
-
-    def save(self, *args, **kwargs):
-        ''' On save, update timestamps '''
-        if not self.id:
-            self.created_at = dateformat.format(timezone.now(), 'Y-m-d H:i:s')
-        self.updated_at = dateformat.format(timezone.now(), 'Y-m-d H:i:s')
-        return super(Option_Users, self).save(*args, **kwargs)
-
 class Exam_files(models.Model):
     name = models.CharField(max_length=30)
     file_path = models.CharField(max_length=255)
@@ -85,6 +69,7 @@ class Exam_Users(models.Model):
     user = models.ForeignKey('accounts.Users', on_delete=models.CASCADE, related_name='exam_users')
     exam = models.ForeignKey(Exams, on_delete=models.CASCADE, related_name='exam_users')
     date = models.DateTimeField(null=True)
+    status = models.BooleanField(default=False)
     created_at = models.DateTimeField(editable=False)
     updated_at = models.DateTimeField(null=True)
     
@@ -96,3 +81,19 @@ class Exam_Users(models.Model):
             self.created_at = dateformat.format(timezone.now(), 'Y-m-d H:i:s')
         self.updated_at = dateformat.format(timezone.now(), 'Y-m-d H:i:s')
         return super(Exam_Users, self).save(*args, **kwargs)
+
+class Option_Users(models.Model):
+    user = models.ForeignKey('accounts.Users', on_delete=models.CASCADE, related_name = 'option_users')
+    option = models.ForeignKey(Options, on_delete=models.CASCADE, related_name = 'option_users')
+    question = models.ForeignKey(Questions, on_delete=models.CASCADE, related_name = 'option_users', null = True)
+    exam = models.ForeignKey(Exams, on_delete=models.CASCADE, related_name = 'option_users', null = True)
+    exam_users = models.ForeignKey(Exam_Users, on_delete=models.CASCADE, related_name = 'option_users', null = True)
+    created_at = models.DateTimeField(editable=False)
+    updated_at = models.DateTimeField(null=True)
+
+    def save(self, *args, **kwargs):
+        ''' On save, update timestamps '''
+        if not self.id:
+            self.created_at = dateformat.format(timezone.now(), 'Y-m-d H:i:s')
+        self.updated_at = dateformat.format(timezone.now(), 'Y-m-d H:i:s')
+        return super(Option_Users, self).save(*args, **kwargs)

@@ -113,34 +113,50 @@ def add_exam_questions(request, exam_id):
     return TemplateResponse(request, 'add_exam_questions.html', {'exam_id': exam_id, 'exam': exam, 'questions': questions, 'videos': videos, 'images': images})
 
 def show_exam(request, exam_id):
+    user_id = request.session.get('user_id')
     exam = Exams.objects.get(id = exam_id)
     questions = exam.questions.all()
     page = request.GET.get('page', 1)
-    # current_page = request.session['page'] = page
     paginator = Paginator(questions, 1)
     questions_in_page = paginator.page(page)
     videos = exam.exam_files.filter(type = 'media')
     images = exam.exam_files.filter(type = 'image')
-    return TemplateResponse(request, 'show_exam.html', {'exam_id': exam_id, 'exam': exam, 'exam_id': exam_id, 'questions_in_page': questions_in_page, 'videos': videos, 'images': images, 'current_page': current_page})
+    exam_users_id = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(status = 0)[0].id
+    user_has_been_answered = Option_Users.objects.filter(exam_users_id = exam_users_id).values_list('question_id', flat=True)
+    return TemplateResponse(request, 'show_exam.html', {'exam_id': exam_id, 'exam': exam, 'exam_id': exam_id, 'questions_in_page': questions_in_page, 'videos': videos, 'images': images, 'user_has_been_answered': user_has_been_answered})
 
 def user_answers(request, exam_id):
     user_id = request.session.get('user_id')
     exam_id = exam_id
-    # current_page = request.session.get('current_page')
     current_page = request.POST.get('current_page', '/')
-    user_exam_count = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).count() #算出這個user在這個exam考了幾次
     option_ids_list = request.POST.getlist("option_id[]")
-    for option_id in option_ids_list:
-        question_id = Options.objects.filter(id = option_id)[0].question_id
-        create_option_users = Option_Users(user_id = user_id, option_id = option_id, question_id = question_id, exam_id = exam_id, user_exam_count = user_exam_count)
-        create_option_users.save()
+    if(not option_ids_list):
+        messages.error(request, "You have not selected any answer!")
+        return HttpResponseRedirect(current_page)
+    has_incomplete_exam_record = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(status = 0).count()#找出user在交卷紀錄裡面是否有status = 0的紀錄
+    if(has_incomplete_exam_record):#如果user有尚未交卷的紀錄就讓user繼續作答
+        for option_id in option_ids_list:
+            question_id = Options.objects.filter(id = option_id)[0].question_id
+            exam_users_id = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(status = 0)[0].id #目前user尚未完成的考卷id
+            # user_answer_count = Option_Users.objects.filter(question_id = question_id).count()
+            # user_exam_count = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).count() #算出這個user在這個exam考了幾次
+            create_option_users = Option_Users(user_id = user_id, option_id = option_id, question_id = question_id, exam_id = exam_id, exam_users_id = exam_users_id) #把user答案寫入DB
+            create_option_users.save()
+        messages.success(request, "Answer has been sent successfully!")
+    else:#表示user之前都交卷了，給他創建新的考卷，status = 0
+        create_exam_users = Exam_Users(user_id = user_id, exam_id = exam_id, date = datetime.datetime.now(), status = 0)
+        create_exam_users.save() #user作答完就紀錄在exam_user上，用來計算他是第幾次應考
+        for option_id in option_ids_list:
+            question_id = Options.objects.filter(id = option_id)[0].question_id
+            exam_users_id = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(status = 0)[0].id #目前user尚未完成的考卷id
+            create_option_users = Option_Users(user_id = user_id, option_id = option_id, question_id = question_id, exam_id = exam_id, exam_users_id = exam_users_id) #把user答案寫入DB
+            create_option_users.save()
+        messages.success(request, "Has sent successfully!")
     return HttpResponseRedirect(current_page)
 
 def user_finish_exam(request, exam_id):
     user_id = request.session.get('user_id')
     exam_id = exam_id
-    create_exam_users = Exam_Users(user_id = user_id, exam_id = exam_id, date = datetime.datetime.now())
-    create_exam_users.save() #user作答完就紀錄在exam_user上，用來計算他是第幾次應考
     return HttpResponse("Test result has been sent successfully.<a href=\"/exams\">Go back to exam list</a>")
 
 def show_user_exam_result(request, exam_id, user_id, user_exam_count):
