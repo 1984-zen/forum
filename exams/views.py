@@ -136,8 +136,6 @@ def user_answers(request, exam_id):
         for option_id in option_ids_list:
             question_id = Options.objects.filter(id = option_id)[0].question_id
             exam_users_id = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(count = 0)[0].id #目前user尚未完成的考卷id
-            # user_answer_count = Option_Users.objects.filter(question_id = question_id).count()
-            # user_exam_count = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).count() #算出這個user在這個exam考了幾次
             create_option_users = Option_Users(user_id = user_id, option_id = option_id, question_id = question_id, exam_id = exam_id, exam_users_id = exam_users_id) #把user答案寫入DB
             create_option_users.save()
         messages.success(request, "Answer has been sent successfully!")
@@ -165,11 +163,16 @@ def show_user_exam_result(request, exam_id, user_id, user_exam_count):
     questions = Questions.objects.filter(exam_id = exam_id)
     videos = exam.exam_files.filter(type = 'media')
     images = exam.exam_files.filter(type = 'image')
-    user_answers = Option_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(user_exam_count = user_exam_count)
-    user_answer_list = []
+    page = request.GET.get('page', 1)
+    paginator = Paginator(questions, 1)
+    questions_in_page = paginator.page(page)
+
+    exam_users_id = Exam_Users.objects.filter(user_id = user_id).filter(exam_id =exam_id).filter(count = user_exam_count)[0].id
+    user_answers = Option_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(exam_users_id = exam_users_id)
+    user_answer_list = [] #user再這張exam所勾選過的選項
     for user in user_answers:
-        user_answer_list.append(user.option_id)
-    return TemplateResponse(request, 'show_user_exam_result.html', {'questions': questions, 'user_answer_list': user_answer_list, 'videos': videos, 'images': images, 'exam': exam})
+        user_answer_list.append(user.option_id) #把所有user對這張exam的所有勾選的option都存進到user_answer_list
+    return TemplateResponse(request, 'show_user_exam_result.html', {'questions_in_page': questions_in_page, 'user_answer_list': user_answer_list, 'videos': videos, 'images': images, 'exam': exam})
 
 def delete_question(request, exam_id, question_id):
     question = Questions.objects.filter(id = question_id)

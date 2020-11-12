@@ -69,7 +69,7 @@
         {% if questions_in_page.has_next %}
         <button style="float: right;"><a href="?page={{ questions_in_page.next_page_number }}">next_page</a></button>
         {% else %}
-        <button class="disabled"><span>next_page</span></button>
+        <button style="float: right;" class="disabled"><span>next_page</span></button>
         {% endif %}
 
         {% endif %}
