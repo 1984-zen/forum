@@ -48,13 +48,13 @@
           {% for user in user_list %}
           <tr>
             <td>
-              {{ user.0 }}
+              {{ user.count }}
             </td>
             <td>
-              <a href="/exams/{{ exam.id }}/users/{{ user.3 }}/result/{{ user.0 }}">{{ user.1 }}</a>
+              <a href="/exams/{{ exam.id }}/users/{{ user.user__id }}/result/{{ user.count }}">{{ user.user__name }}</a>
             </td>
             <td>
-              {{ user.2 }}
+              {{ user.date }}
             </td>
           </tr>
           {% endfor %}

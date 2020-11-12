@@ -69,12 +69,12 @@ class Exam_Users(models.Model):
     user = models.ForeignKey('accounts.Users', on_delete=models.CASCADE, related_name='exam_users')
     exam = models.ForeignKey(Exams, on_delete=models.CASCADE, related_name='exam_users')
     date = models.DateTimeField(null=True)
-    status = models.BooleanField(default=False)
+    count = models.IntegerField(default=0)
     created_at = models.DateTimeField(editable=False)
     updated_at = models.DateTimeField(null=True)
     
     def __str__(self):
-        return self.user
+        return str(self.user)
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''
         if not self.id:

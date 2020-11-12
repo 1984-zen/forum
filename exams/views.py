@@ -21,15 +21,9 @@ def show_exam_list(request):
     return TemplateResponse(request, 'exam_list.html', {'exam_list': exam_list})
 
 def show_exam_user_list(request, exam_id):
+    user_list = Exam_Users.objects.filter(exam_id = exam_id).exclude(count = 0).select_related('user').values('user__id', 'user__name', 'date', 'count')
     exam = Exams.objects.get(id = exam_id)
-    user_list = Option_Users.objects.filter(exam_id = exam_id).values_list('user_exam_count', 'user_id').distinct().values('user_exam_count', 'user_id', 'created_at').order_by('user_id', '-created_at') #用('user_exam_count', 'user_id')分組排序user_exam_count是這位考生考exam的次數
-    #[{'user_exam_count': 4, 'user_id': 1, 'created_at': datetime.datetime(2020, 11, 4, 11, 58, 14)}]
-    user_list_get_name = []
-    for user in user_list:
-        user_name = Users.objects.get(id = user['user_id'])
-        user_list_get_name.append((user['user_exam_count'], user_name, user['created_at'].strftime('%Y-%m-%d %H:%M'), user['user_id']))
-        #[(4, <Users: zen>, '2020-11-04')]
-    return TemplateResponse(request, 'exam_user_list.html', {'user_list': user_list_get_name, 'exam': exam})
+    return TemplateResponse(request, 'exam_user_list.html', {'user_list': user_list, 'exam': exam})
 
 def new_exam(request):
     return render(request, 'new_exam.html', {'username': username})
@@ -121,8 +115,12 @@ def show_exam(request, exam_id):
     questions_in_page = paginator.page(page)
     videos = exam.exam_files.filter(type = 'media')
     images = exam.exam_files.filter(type = 'image')
-    exam_users_id = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(status = 0)[0].id #找到user未完成的考卷status = 0
-    user_has_been_answered = Option_Users.objects.filter(exam_users_id = exam_users_id).values_list('question_id', flat=True)
+    has_user_incomplete_record = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(count = 0).count() #找到user未完成的考卷count = 0
+    if(has_user_incomplete_record):
+        exam_users_id = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(count = 0)[0].id
+        user_has_been_answered = Option_Users.objects.filter(exam_users_id = exam_users_id).values_list('question_id', flat=True)
+    else:
+        user_has_been_answered = []
     return TemplateResponse(request, 'show_exam.html', {'user_id': user_id, 'exam_id': exam_id, 'exam': exam, 'exam_id': exam_id, 'questions_in_page': questions_in_page, 'videos': videos, 'images': images, 'user_has_been_answered': user_has_been_answered})
 
 def user_answers(request, exam_id):
@@ -133,22 +131,22 @@ def user_answers(request, exam_id):
     if(not option_ids_list):
         messages.error(request, "You have not selected any answer!")
         return HttpResponseRedirect(current_page)
-    has_incomplete_exam_record = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(status = 0).count()#找出user在交卷紀錄裡面是否有status = 0的紀錄
+    has_incomplete_exam_record = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(count = 0).count()#找出user在交卷紀錄裡面是否有count = 0的紀錄
     if(has_incomplete_exam_record):#如果user有尚未交卷的紀錄就讓user繼續作答
         for option_id in option_ids_list:
             question_id = Options.objects.filter(id = option_id)[0].question_id
-            exam_users_id = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(status = 0)[0].id #目前user尚未完成的考卷id
+            exam_users_id = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(count = 0)[0].id #目前user尚未完成的考卷id
             # user_answer_count = Option_Users.objects.filter(question_id = question_id).count()
             # user_exam_count = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).count() #算出這個user在這個exam考了幾次
             create_option_users = Option_Users(user_id = user_id, option_id = option_id, question_id = question_id, exam_id = exam_id, exam_users_id = exam_users_id) #把user答案寫入DB
             create_option_users.save()
         messages.success(request, "Answer has been sent successfully!")
-    else:#表示user之前都交卷了，給他創建新的考卷，status = 0
-        create_exam_users = Exam_Users(user_id = user_id, exam_id = exam_id, date = datetime.datetime.now(), status = 0)
+    else:#表示user之前都交卷了，給他創建新的考卷，count = 0
+        create_exam_users = Exam_Users(user_id = user_id, exam_id = exam_id, date = datetime.datetime.now(), count = 0)
         create_exam_users.save() #user作答完就紀錄在exam_user上，用來計算他是第幾次應考
         for option_id in option_ids_list:
             question_id = Options.objects.filter(id = option_id)[0].question_id
-            exam_users_id = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(status = 0)[0].id #目前user尚未完成的考卷id
+            exam_users_id = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(count = 0)[0].id #目前user尚未完成的考卷id
             create_option_users = Option_Users(user_id = user_id, option_id = option_id, question_id = question_id, exam_id = exam_id, exam_users_id = exam_users_id) #把user答案寫入DB
             create_option_users.save()
         messages.success(request, "Has sent successfully!")
@@ -157,8 +155,9 @@ def user_answers(request, exam_id):
 def user_exam_completed(request, exam_id, user_id):
     user_id = request.session.get('user_id')
     exam_id = exam_id
-    update_exam_users_status_to_1 = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(status = 0) #找到user未完成的考卷status = 0
-    update_exam_users_status_to_1.update(status = 1)
+    user_has_completed_exam_count = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(count = 1).count() #算出已完成考試的數量
+    update_exam_users_count_to_1 = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(count = 0) #找到user未完成的考卷count = 0
+    update_exam_users_count_to_1.update(count = user_has_completed_exam_count + 1) #已完成考試的MAX數量+1
     return HttpResponse("Finished!! All answers have been sent successfully.<a href=\"/exams\">Go back to exam list</a>")
 
 def show_user_exam_result(request, exam_id, user_id, user_exam_count):
