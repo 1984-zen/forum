@@ -15,6 +15,8 @@ from django.conf import settings
 from django.utils import timezone, dateformat
 from django.template.response import TemplateResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from openpyxl import Workbook
+
 
 def show_exam_list(request):
     exam_list = Exams.objects.all().order_by('-created_at')
@@ -198,3 +200,38 @@ def delete_exam(request, exam_id):
     exam = Exams.objects.get(id = exam_id)
     exam.delete()
     return HttpResponseRedirect(reverse("show_exam_list"))
+
+def export_user_answer_xls(request, exam_id, user_id, user_exam_count):
+    user_name = Users.objects.get(id = user_id).name
+    exam_date = Exam_Users.objects.filter(exam_id = exam_id).filter(user_id = user_id).filter(count = user_exam_count).values('date')[0]['date'].strftime('%Y-%m-%d_%H%M')
+    exam_title = Exams.objects.get(id = exam_id).name
+    response = HttpResponse(content_type='application/ms-excel') #匯出excel是用response的content-type
+    response['Content-Disposition'] = f"attachment; filename = {user_name}_answer_{exam_date}.xlsx" #匯出excel的檔名
+
+    wb = Workbook()
+    wb.create_sheet()
+    ws = wb.active #拿到地1個sheet[0]
+    ws.title = f"{user_name}_answer_{exam_date}" #命名sheet名稱
+
+    questions = Questions.objects.filter(exam_id = 217).values('id') #考捲id=217
+    #[{'id': 1724}, {'id': 1725}...]
+    user_answers = Option_Users.objects.filter(exam_id = 217).filter(user_id = user_id).select_related('option').values('question_id','option__option')
+    #<QuerySet [{'question_id': 1728, 'option__option': 'Apical 3-chamber–color'},...]
+
+    #開始寫入excel
+    #寫入欄位
+    ws.cell(1, 1).value = '試卷名稱_Exam_title' # row=1, col=1欄位名稱'試卷名稱_Exam_title'
+    ws.cell(2, 1).value = 'Question' # row=2, col=1欄位名稱'Question'
+    ws.cell(2, 2).value = 'Answers' # row=2, col=2欄位名稱'Answers'
+
+    #寫入內容
+    ws.cell(1, 2).value = exam_title # row=1, col=2'Exam_title'
+    for i in range(len(questions)): #印出題目的流水號從1~13809
+        ws.cell(i+3, 1).value = i + 1 #question流水號從1開始
+        for user_answer in user_answers: #user_answers[]
+            if(user_answer['question_id'] == questions[i]['id']): #檢查user有回答這個question的話...就紀錄user勾選的選項
+                count_user_answer_has_more_than_one = Option_Users.objects.filter(exam_id = exam_id).filter(user_id = user_id).filter(question_id = user_answer['question_id']).values('question_id','option__option')#如果user複選的話...
+                for j in range(count_user_answer_has_more_than_one.count()): #用for迴圈去橫向紀錄在excel表格
+                    ws.cell(i+3, 2+j).value = count_user_answer_has_more_than_one[j]['option__option'] #user勾選的ansers從row=3, col=2...col=2+j寫入
+    wb.save(response) #存檔
+    return response #匯出到瀏覽器下載

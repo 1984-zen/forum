@@ -55,6 +55,7 @@
             </td>
             <td>
               {{ user.date }}
+              <a href="{% url 'export_user_answer_xls' exam_id=exam.id user_id=user.user__id user_exam_count=user.count %}">下載</a>
             </td>
           </tr>
           {% endfor %}

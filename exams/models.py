@@ -39,7 +39,7 @@ class Options(models.Model):
     updated_at = models.DateTimeField(null=True)
 
     def __str__(self):
-        return self.option
+        return str(self.option)
     def save(self, *args, **kwargs):
         ''' On save, update timestamps '''
         if not self.id:

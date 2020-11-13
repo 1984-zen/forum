@@ -21,5 +21,6 @@ urlpatterns = [
     path('exams/<int:exam_id>/questions/<int:question_id>/question_files/<int:question_image_id>/delete', views.delete_question_image, name = 'delete_question_image'),
     path('exams/<int:exam_id>/options/<int:option_id>/delete', views.delete_option, name = 'delete_option'),
     path('exams/<int:exam_id>/delete', views.delete_exam, name = 'delete_exam'),
+    path('exams/<int:exam_id>/users/<int:user_id>/result/<int:user_exam_count>/download', views.export_user_answer_xls, name = 'export_user_answer_xls'),
 ] 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
