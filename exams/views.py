@@ -28,7 +28,7 @@ def show_exam_user_list(request, exam_id):
     return TemplateResponse(request, 'exam_user_list.html', {'user_list': user_list, 'exam': exam})
 
 def new_exam(request):
-    return render(request, 'new_exam.html', {'username': username})
+    return TemplateResponse(request, 'new_exam.html', {})
 
 def get_ajax_answers_options(request):
     question = request.POST.get("question")
