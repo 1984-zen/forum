@@ -31,6 +31,7 @@ def new_exam(request):
     return TemplateResponse(request, 'new_exam.html', {})
 
 def get_ajax_answers_options(request):
+    user_id = request.session.get('user_id')
     question = request.POST.get("question")
     option_list = request.POST.get("option_list").split(',') #因為從前端接收到的值= True,False所以用split(',')變成['True', 'False']
     answer_list = request.POST.get("answer_list").split(',') #因為從前端接收到的值= True,False所以用split(',')變成['True', 'False']
