@@ -129,12 +129,11 @@ def show_exam(request, exam_id):
 def user_answers(request, exam_id):
     user_id = request.session.get('user_id')
     exam_id = exam_id
-    current_page = request.POST.get('current_page', '/')
-    next_page = request.POST.get('next_page', '/') #如果考生勾選答案並提交就跳到下一題
+    current_page = request.POST.get('current_page') #從前端的input有個name叫做"current_page"，印出型別是str，所以next_page要加1之前要轉int()
     option_ids_list = request.POST.getlist("option_id[]")
     if(not option_ids_list): #如果考生沒有勾選答案就提交就回到原本題目
         messages.error(request, "You have not selected any answer!")
-        return HttpResponseRedirect(current_page)
+        return HttpResponseRedirect(reverse('show_exam', kwargs={"exam_id": exam_id}) + "?page=" + current_page) #跳回到同一題
     has_incomplete_exam_record = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(count = 0).count()#找出user在交卷紀錄裡面是否有count = 0的紀錄
     if(has_incomplete_exam_record):#如果user有尚未交卷的紀錄就讓user繼續作答
         for option_id in option_ids_list:
@@ -152,7 +151,7 @@ def user_answers(request, exam_id):
             create_option_users = Option_Users(user_id = user_id, option_id = option_id, question_id = question_id, exam_id = exam_id, exam_users_id = exam_users_id) #把user答案寫入DB
             create_option_users.save()
         messages.success(request, "Has sent successfully!")
-    return HttpResponseRedirect(next_page) #跳到下一題
+    return HttpResponseRedirect(reverse('show_exam', kwargs={"exam_id": exam_id}) + "?page=" + int(current_page) + 1) #跳到下一題
 
 def user_exam_completed(request, exam_id, user_id):
     user_id = request.session.get('user_id')
