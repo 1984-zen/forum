@@ -160,7 +160,7 @@ def user_answers(request, exam_id):
             create_option_users = Option_Users(user_id = user_id, option_id = option_id, question_id = question_id, exam_id = exam_id, exam_users_id = exam_users_id) #把user答案寫入DB
             create_option_users.save()
         messages.success(request, "Has sent successfully!")
-    return HttpResponseRedirect(reverse('show_exam', kwargs={"exam_id": exam_id}) + "?page=" + int(current_page) + 1) #跳到下一題
+    return HttpResponseRedirect(reverse('show_exam', kwargs={"exam_id": exam_id}) + "?page=" + str(int(current_page) + 1)) #跳到下一題
 
 def user_exam_completed(request, exam_id, user_id):
     user_id = request.session.get('user_id')
