@@ -19,8 +19,17 @@ from openpyxl import Workbook
 
 
 def show_exam_list(request):
+    user_id = request.session.get('user_id')
     exam_list = Exams.objects.all().order_by('-created_at')
-    return TemplateResponse(request, 'exam_list.html', {'exam_list': exam_list})
+    get_exam_users_id_list = Exam_Users.objects.filter(user_id = user_id).filter(count = 0).values_list('exam_id', 'id') #從user那些尚未完成的考卷中拿到Exam_Users.exam_id及Exam_Users.id
+    last_answer_list = [] #紀錄user上次做到哪一題的結果list
+    for (exam_id, exam_users_id) in get_exam_users_id_list:
+        get_questions_id = Questions.objects.filter(exam_id = exam_id).values_list('id', flat=True) #拿到該exam_id中的所有Questions題目id
+        get_user_answered_question_id = Option_Users.objects.filter(exam_users_id = exam_users_id).values_list('question_id', flat=True) #拿到所有user在該exam_id中回答過的question_id
+        last_answer_id = min(set(get_questions_id) - set(get_user_answered_question_id)) #算出user上次未完成的題目的最小question_id = 取最小值(所有題目的id - 使用者回答過的題目)
+        page_num = list(get_questions_id).index(last_answer_id) #拿到上次回答是第幾頁
+        last_answer_list.append({"exam_id": exam_id, "next_answer_page": page_num + 1}) 
+    return TemplateResponse(request, 'exam_list.html', {'exam_list': exam_list, 'last_answer_list': last_answer_list})
 
 def show_exam_user_list(request, exam_id):
     user_list = Exam_Users.objects.filter(exam_id = exam_id).exclude(count = 0).select_related('user').values('user__id', 'user__name', 'date', 'count')

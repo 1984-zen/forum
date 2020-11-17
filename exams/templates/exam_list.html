@@ -26,16 +26,16 @@
     </ol>
 
     {% if not user_name %}
-    <span>please <a href="/login">login</a></span>
+    <span>please <a href="{% url 'login' %}">login</a></span>
     {% else %}
-    <span><a href="/logout">log out</a></span>
+    <span><a href="{% url 'logout' %}">log out</a></span>
     {% endif %}
     <h2>Hi! Wellcome {{ user_name|default:'Guest' }}</h2>
 
     <br>
 
     {% if is_admin %}
-    <a href="/exams/new"><button>Create a new exam</button></a>
+    <a href="{% url 'new_exam' %}"><button>Create a new exam</button></a>
     {% endif %}
 
     <br><br>
@@ -52,13 +52,25 @@
           <td>
             {{ exam.name }}
             {% if is_admin %}
-            (<a href="/exams/{{ exam.id }}/users">查看考生結果</a>
+            (<a href="{% url 'show_exam_user_list' exam_id=exam.id %}">查看考生結果</a>
             <!-- , <a href="/exams/new/{{ exam.id }}">更新考題</a> -->
-              ) 
+            )
             <!-- <ahref="/exams/{{ exam.id }}/delete">
               <button>Delete
                 exam</button></a> -->
-                 <a href="/exams/{{ exam.id }}"><button>開始作答</button></a><br>
+            {% if last_answer_list %}
+            {% for result in last_answer_list %}
+
+            <a href="{% url 'show_exam' exam_id=exam.id %}?page={{ result.next_answer_page }}"><button>開始作答</button></a>
+            <br>
+            {% endfor %}
+
+            {% else %}
+
+            <a href="{% url 'show_exam' exam_id=exam.id %}?page=1"><button>開始作答</button></a>
+            <br>
+
+            {% endif %}
             {% endif %}
           </td>
         </tr>
