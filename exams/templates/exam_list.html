@@ -58,6 +58,7 @@
             <!-- <ahref="/exams/{{ exam.id }}/delete">
               <button>Delete
                 exam</button></a> -->
+            {% if last_answer_list %}
             {% for result in last_answer_list %}
             {% if result.exam_id == exam.id %}
 
@@ -71,6 +72,12 @@
 
             {% endif %}
             {% endfor %}
+
+            {% else %}
+
+            <a href="{% url 'show_exam' exam_id=exam.id %}?page=1"><button>開始作答</button></a>
+            <br>
+            {% endif %}
             {% endif %}
           </td>
         </tr>
