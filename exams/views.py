@@ -132,7 +132,7 @@ def show_exam(request, exam_id):
         user_has_been_answered = Option_Users.objects.filter(exam_users_id = exam_users_id).values_list('question_id', flat=True)
     else:
         user_has_been_answered = []
-    return TemplateResponse(request, 'show_exam.html', {'question_num': page, 'user_id': user_id, 'exam_id': exam_id, 'exam': exam, 'exam_id': exam_id, 'questions_in_page': questions_in_page, 'videos': videos, 'images': images, 'user_has_been_answered': user_has_been_answered})
+    return TemplateResponse(request, 'show_exam.html', {'user_id': user_id, 'exam_id': exam_id, 'exam': exam, 'exam_id': exam_id, 'questions_in_page': questions_in_page, 'videos': videos, 'images': images, 'user_has_been_answered': user_has_been_answered})
 
 def user_answers(request, exam_id):
     user_id = request.session.get('user_id')
