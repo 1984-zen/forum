@@ -35,6 +35,7 @@ class Options(models.Model):
     option = models.CharField(max_length=255)
     is_answer = models.BooleanField(default=False)
     question = models.ForeignKey(Questions, on_delete=models.CASCADE, related_name = 'options')
+    next_question_id = models.IntegerField(null=True)
     created_at = models.DateTimeField(editable=False)
     updated_at = models.DateTimeField(null=True)
 
