@@ -27,9 +27,9 @@
     </ol>
 
     {% if not user_name %}
-    <span>please <a href="/login">login</a></span>
+    <span>please <a href="{% url 'login' %}">login</a></span>
     {% else %}
-    <span><a href="/logout">log out</a></span>
+    <span><a href="{% url 'logout' %}">log out</a></span>
     {% endif %}
     <h2>Hi! Wellcome {{ user_name|default:'Guest' }}</h2>
 
@@ -39,6 +39,7 @@
       <table class="table table-striped">
         <thead>
           <tr>
+            <th>SN</th>
             <th>第幾次考試</th>
             <th>姓名</th>
             <th>考試時間</th>
@@ -47,11 +48,12 @@
         <tbody>
           {% for user in user_list %}
           <tr>
+            <td>{{ forloop.counter }}</td>
             <td>
               {{ user.count }}
             </td>
             <td>
-              <a href="/exams/{{ exam.id }}/users/{{ user.user__id }}/result/{{ user.count }}">{{ user.user__name }}</a>
+              <a href="{% url 'show_user_exam_result' exam_id=exam.id user_id=user.user__id user_exam_count=user.count %}">{{ user.user__name }}</a>
             </td>
             <td>
               {{ user.date }}
