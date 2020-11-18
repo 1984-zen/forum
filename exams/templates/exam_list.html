@@ -43,12 +43,14 @@
     <table style="width:100%;" border="1">
       <thead>
         <tr>
+          <th>SN</th>
           <th>Exam title</th>
         </tr>
       </thead>
       <tbody>
         {% for exam in exam_list %}
         <tr>
+          <td>{{ forloop.counter }}</td>
           <td>
             {{ exam.name }}
             {% if is_admin %}
