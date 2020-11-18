@@ -31,7 +31,7 @@ def show_exam_list(request):
     return TemplateResponse(request, 'exam_list.html', {'exam_list': exam_list, 'last_answer_list': last_answer_list})
 
 def show_exam_user_list(request, exam_id):
-    user_list = Exam_Users.objects.filter(exam_id = exam_id).exclude(count = 0).select_related('user').values('user__id', 'user__name', 'date', 'count')
+    user_list = Exam_Users.objects.filter(exam_id = exam_id).exclude(count = 0).select_related('user').values('user__id', 'user__name', 'date', 'count').order_by('user__name', '-created_at')
     exam = Exams.objects.get(id = exam_id)
     return TemplateResponse(request, 'exam_user_list.html', {'user_list': user_list, 'exam': exam})
 
