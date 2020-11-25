@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <script src="{% static 'jquery/jquery-3.5.1.min.js' %}"></script>
+
+    <title>Exams</title>
+</head>
+
+<body>
+    <div class="container">
+        <!-- start here -->
+        {% if messages %}
+        {% for message in messages %}
+        {% if message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+        <div class="alert alert-success" role="alert" style="text-align: center;">
+            {{ message }}
+        </div>
+        {% elif message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+        <div class="alert alert-warning" role="alert" style="text-align: center;">
+            {{ message }}
+        </div>
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+
+        <ol class="breadcrumb my-4">
+            <li class="breadcrumb-item"><a href="{% url 'show_exam_list' %}">Exams</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'add_more_questions' exam_id=exam.id %}">Add or Edit Exam: {{ exam.name }}</a></li>
+            <li class="breadcrumb-item">Update Question: {{ question.question }}</li>
+        </ol>
+
+        {% if not user_name %}
+        <span>please <a href="/login">login</a></span>
+        {% else %}
+        <span><a href="/logout">log out</a></span>
+        {% endif %}
+        <h2>Hi! Wellcome {{ user_name|default:'Guest' }}</h2><br>
+
+        <table style="width:100%">
+            <thead>
+                <tr>
+                    <th style="font-size:1.5em">Exam Titles:</th>
+                </tr>
+                <tr>
+                    <th>{{ exam.name }}</th>
+                </tr>
+            </thead>
+        </table>
+
+        <br><br>
+
+        <form method="post" action="{% url 'update_question' exam_id=exam.id question_id=question.id %}"
+            enctype="multipart/form-data">{% csrf_token %}
+
+            <table style="width:100%;" border="1">
+                <tbody>
+                    <tr>
+
+                        <td style="width:8%;text-align: center;">
+                            <strong>Question</strong>
+                        </td>
+                        <td>
+                            <p style="color: blue;">{{ q.question }}</p>
+                            <textarea style="width:100%;" rows="5" name="question" required>{{ question }}</textarea>
+                            {% if videos %}
+                            {% for v in videos %}
+                            {% if v.question_id == q.id %}
+                            <video width='900' controls>
+                                <source src="{{ MEDIA_URL }}{{ v.file_path }}" type='video/mp4'>
+                                </source>
+                                Your browser does not support the video tag.
+                            </video>
+
+                            <br>
+
+                            {% endif %}
+                            {% endfor %}
+                            {% endif %}
+
+                            {% if images %}
+                            {% for i in images %}
+                            {% if i.question_id == q.id %}
+                            <img src="{{ MEDIA_URL }}{{ i.file_path }}" width='900'>
+
+                            <br>
+
+                            {% endif %}
+                            {% endfor %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% for o in question.options.all %}
+                    <tr>
+                        <td style="width:8%;text-align: center;">
+                            <strong>Option</strong>
+                        </td>
+                        <td>
+                            {% if o.is_answer == True %}
+                            <input type="checkbox" name="is_answer[]" value="{{o.id}}" checked/>
+                            {% elif o.is_answer == False %}
+                            <input type="checkbox" name="is_answer[]" value="{{o.id}}"/>
+                            {% endif %}
+                            <input style="width:98%;" type="text" name="option[]" value="{{ o.option }}" required/>
+
+                            <br>
+                            
+                            {% for next_question in next_question_list %}
+                            {% if o.id == next_question.option_id and next_question.next_question %}
+                            <span><strong>choose this option will jump to the question: </strong></span>
+                            <span>{{ next_question.next_question }}</span>
+                            {% endif %}
+                            {% endfor %}
+
+                            (<a
+                                href="{% url 'update_next_question_id' exam_id=exam.id question_id=question.id option_id=o.id %}">change
+                                Jump to the other question</a>)
+                            {% endfor %}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <br><br>
+
+            <button type="submit">更新Question及Option</button>
+
+        </form>
+
+        <br><br>
+        
+    </div> <!-- end here -->
+</body>
+
+</html>

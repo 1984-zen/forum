@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <script src="{% static 'jquery/jquery-3.5.1.min.js' %}"></script>
+
+    <title>Exams</title>
+</head>
+
+<body>
+    <div class="container">
+        <!-- start here -->
+        {% if messages %}
+        {% for message in messages %}
+        {% if message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+        <div class="alert alert-success" role="alert" style="text-align: center;">
+            {{ message }}
+        </div>
+        {% elif message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+        <div class="alert alert-warning" role="alert" style="text-align: center;">
+            {{ message }}
+        </div>
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+
+        <ol class="breadcrumb my-4">
+            <li class="breadcrumb-item"><a href="{% url 'show_exam_list' %}">Exams</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'add_more_questions' exam_id=exam.id %}">Add or Edit Exam:
+                    {{ exam.name }}</a></li>
+            <li class="breadcrumb-item"><a
+                    href="{% url 'update_question' exam_id=exam.id question_id=question.id %}">Update Question: {{ question.question }}</a></li>
+            <li class="breadcrumb-item">Update choose jump to the question</li>
+        </ol>
+
+        {% if not user_name %}
+        <span>please <a href="/login">login</a></span>
+        {% else %}
+        <span><a href="/logout">log out</a></span>
+        {% endif %}
+        <h2>Hi! Wellcome {{ user_name|default:'Guest' }}</h2><br>
+
+        <table style="width:100%">
+            <thead>
+                <tr>
+                    <th style="font-size:1.5em">Question:</th>
+                </tr>
+                <tr>
+                    <th>{{ question.question }}</th>
+                </tr>
+            </thead>
+        </table>
+
+        <br><br>
+
+        <form method="post"
+            action="{% url 'update_next_question_id' exam_id=exam.id question_id=question.id option_id=option.id%}"
+            enctype="multipart/form-data">{% csrf_token %}
+
+            <table style="width:100%;" border="1">
+                <tbody>
+                    <tr>
+                        <td style="width:20%;text-align: center;">
+                            <strong>Option</strong>
+                        </td>
+                        <td>
+                            {{ option.option }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="width:20%;text-align: center;">
+                            <strong>Choose jump to the question</strong>
+                        </td>
+                        <td>
+                            <select name="next_question_id" style="width:300px;">
+                                <option value="jump_to_next_default_question">繼續下一題</option>
+                                {% for q in questions %}
+                                {% if q.id == question.id %}
+                                <option value="question_id:{{ q.id }}-{{ q.question }}" disabled>
+                                    question_id:{{ q.id }}-{{ q.question }}</option>
+                                {% else %}
+                                <option value="question_id:{{ q.id }}-{{ q.question }}">
+                                    question_id:{{ q.id }}-{{ q.question }}</option>
+                                {% endif %}
+                                {% endfor %}
+                            </select>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <br><br>
+
+            <button type="submit">提交更新</button>
+
+        </form>
+
+        <br><br>
+
+    </div> <!-- end here -->
+</body>
+
+</html>

@@ -16,6 +16,8 @@ from django.utils import timezone, dateformat
 from django.template.response import TemplateResponse
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from openpyxl import Workbook
+import re
+from django.core.exceptions import ObjectDoesNotExist
 
 def show_exam_list(request):
     user_id = request.session.get('user_id')
@@ -36,7 +38,60 @@ def show_exam_user_list(request, exam_id):
     return TemplateResponse(request, 'exam_user_list.html', {'user_list': user_list, 'exam': exam})
 
 def new_exam(request):
-    return TemplateResponse(request, 'new_exam.html', {})
+    return TemplateResponse(request, 'new_exam.html', {}) #這裡是空object是為了能接到middleware的process_template_response()的response
+
+def update_question(request, exam_id, question_id):
+    if(request.method == "POST"): #如果user提交更新某個問題,該題選項,跳至某一題的話
+        question = request.POST.get("question") #前端user修正question text
+        update_question = Questions.objects.filter(id = question_id) #更新question
+        update_question.update(question = question) #存入更新
+
+        options_id_list = Options.objects.filter(question_id = question_id).values_list('id', flat = True) #拿到該question下的所有option的id
+        option_list = request.POST.getlist("option[]") #前端user修正的所有option text
+        is_answer_list = request.POST.getlist("is_answer[]")  #前端user修正的所有is_answer
+        for i in range(len(options_id_list)): #for迴圈去一個個判斷option的checkbox是否被user打過勾，打過勾就會把option_id紀錄在is_answer_list裡面，然後再去對照如果option_id也出現在is_answer_list就會顯示True
+            has_option_id = str(options_id_list[i]) in is_answer_list # 回傳True or False
+            update_is_answer = Options.objects.filter(id = options_id_list[i])
+            update_is_answer.update(is_answer = has_option_id, option = option_list[i])
+        return HttpResponseRedirect(reverse("add_more_questions", kwargs={"exam_id": exam_id}))
+    exam = Exams.objects.get(id = exam_id) #if(request.method == "GET")顯示update_question.html畫面
+    questions = exam.questions.all()
+    question = questions.get(id = question_id)
+    next_question_id_list = Options.objects.filter(question_id = question_id).values_list('id', 'next_question_id')
+    next_question_list = []
+    for (option_id, next_question_id) in next_question_id_list:
+        try:
+            next_question = Questions.objects.get(id = next_question_id)
+            next_question_list.append({"next_question": next_question, "option_id": option_id})
+        except ObjectDoesNotExist:
+            next_question_list.append({"next_question": None, "option_id": option_id})
+    print(next_question_list)
+    return TemplateResponse(request, 'update_question.html', {'exam': exam, 'questions': questions, 'question': question, 'next_question_list': next_question_list}) #這裡是空object是為了能接到middleware的process_template_response()的response
+
+def update_next_question_id(request, exam_id, question_id, option_id):
+    if(request.method == "POST"):
+        next_quetion_id = request.POST.get("next_question_id")
+        if(next_quetion_id == "jump_to_next_default_question"): #前端要回復正常跳到下一個問題，後端判斷此值有兩種可能，一種是不是最後一個問題，就跳到下一題question id + 1, 否則給None這樣DB就會把跳到下一個問題給null值
+            try:
+                query_next_question_result = Questions.objects.get(id = question_id + 1).id #去query判斷是否真的有這個question_id + 1的資料，如果有就抓出這個question id
+            except ObjectDoesNotExist:
+                query_next_question_result = None #如果id查無此row就給None，讓DB在next_question_id寫入null
+            update_option_next_question_id = Options.objects.filter(id = option_id)
+            update_option_next_question_id.update(next_question_id = query_next_question_result)
+            return HttpResponseRedirect(reverse("update_question", kwargs={"exam_id": exam_id, 'question_id': question_id}))
+        else:
+            pattern = '([0-9]+)-?' #如果是指定某個問題就用正則拿到question_id
+            match = re.search(pattern, next_quetion_id)
+            if(match): #如果有抓到就會有值，如果沒有就會回傳None
+                ans = match.group(1) #因為我要的question id在match裡面的一個group裡面
+                update_option_next_question_id = Options.objects.filter(id = option_id)
+                update_option_next_question_id.update(next_question_id = ans)
+                return HttpResponseRedirect(reverse("update_question", kwargs={"exam_id": exam_id, 'question_id': question_id}))
+    option = Options.objects.get(id = option_id)
+    exam = Exams.objects.get(id = exam_id)
+    questions = exam.questions.all()
+    question = questions.get(id = question_id)
+    return TemplateResponse(request, 'update_option_next_question_id.html', {'exam': exam, 'option': option, 'questions': questions, 'question': question})
 
 def get_ajax_answers_options(request):
     user_id = request.session.get('user_id')
@@ -48,8 +103,12 @@ def get_ajax_answers_options(request):
         create_question = Questions(question = question, exam_id = exam_id)
         create_question.save()
 
+        last_question = Questions.objects.get(id = create_question.id - 1) #找到上一個question_id
+        last_options = Options.objects.filter(question_id = last_question.id).filter(next_question_id = None) #找到它底下的options是屬於沒有指定任何next_question_id
+        update_last_options = last_options.update(next_question_id = create_question.id) #就幫他們都指定剛剛創建好的question_id
+
         for i in range(len(option_list)):
-            create_option = Options(option = option_list[i], is_answer = answer_list[i], question_id = create_question.id)
+            create_option = Options(option = option_list[i], is_answer = answer_list[i], question_id = create_question.id) #一開始next_question_id是null
             create_option.save()
 
         if(request.FILES.getlist('media_file')):
@@ -74,7 +133,7 @@ def get_ajax_answers_options(request):
         create_question.save()
         
         for i in range(len(option_list)):
-            create_option = Options(option = option_list[i], is_answer = answer_list[i], question_id = create_question.id)
+            create_option = Options(option = option_list[i], is_answer = answer_list[i], question_id = create_question.id) #一開始next_question_id是null
             create_option.save()
         
         if(request.FILES.getlist('media_file')):

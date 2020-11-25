@@ -15,7 +15,7 @@
         <!-- start here -->
         <ol class="breadcrumb my-4">
             <li class="breadcrumb-item"><a href="{% url 'show_exam_list' %}">Exams</a></li>
-            <li class="breadcrumb-item">Add or Edit: {{ exam.name }}</li>
+            <li class="breadcrumb-item">Add or Edit Exam: {{ exam.name }}</li>
         </ol>
 
         {% if not user_name %}
@@ -26,7 +26,7 @@
         <h2>Hi! Wellcome {{ user_name|default:'Guest' }}</h2>
 
         <br>
-
+       
         <form action="javascript:completeAndRedirect()">{% csrf_token %}
             <label><b>Question:</b></label>
             <textarea style="width:100%;" id="question" rows="5" required></textarea>
@@ -88,6 +88,8 @@
                         <strong>Question</strong>
                         <a href="/exams/{{ q.exam_id }}/questions/{{ q.id }}/delete"><button>Delete
                                 question</button></a>
+                        <a href="{% url 'update_question' exam_id=q.exam_id question_id=q.id %}"><button>update
+                                    question</button></a>
                     </td>
                     <td>
                         <p style="color: blue;">{{ q.question }}</p>
