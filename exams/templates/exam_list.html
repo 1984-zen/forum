@@ -60,26 +60,20 @@
             <!-- <ahref="/exams/{{ exam.id }}/delete">
               <button>Delete
                 exam</button></a> -->
-            {% if last_answer_list %}
-            {% for result in last_answer_list %}
-            {% if result.exam_id == exam.id %}
+            {% endif %}
 
-            <a href="{% url 'show_exam' exam_id=exam.id %}?page={{ result.next_answer_page }}"><button>開始作答</button></a>
-            <br>
-
-            {% else %}
-
-            <a href="{% url 'show_exam' exam_id=exam.id %}?page=1"><button>開始作答</button></a>
+            {% for last_answer in last_answer_list %}
+            {% if last_answer.exam_id == exam.id %}
+            <a href="{% url 'show_exam' exam_id=exam.id %}?page={{ last_answer.next_answer_page }}"><button>開始作答</button></a>
             <br>
 
             {% endif %}
             {% endfor %}
 
-            {% else %}
-
+            {% if exam.id not in user_incomplete_exam_id_list %}
             <a href="{% url 'show_exam' exam_id=exam.id %}?page=1"><button>開始作答</button></a>
             <br>
-            {% endif %}
+
             {% endif %}
           </td>
         </tr>

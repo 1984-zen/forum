@@ -82,7 +82,8 @@
             <table style="width:100%;" border="1">
                 <tbody>
                     <tr>
-                        <td rowspan="2" style="padding: 10pt"><strong>{{ forloop.counter0|add:questions_in_page.end_index }}</strong></td>
+                        <td rowspan="2" style="padding: 10pt">
+                            <strong>{{ forloop.counter0|add:questions_in_page.end_index }}</strong></td>
                         <td style="width:8%">
                             <strong>Question</strong>
                         </td>
@@ -121,7 +122,8 @@
                         </td>
                         <td>
                             {% for o in q.options.all %}
-                            <input type="checkbox" name="option_id[]" value="{{ o.id }}"
+                            <input type="checkbox" name="user_answers[]"
+                                value="{'option_id': {{ o.id }}, 'next_question_id': {{ o.next_question_id }}, 'question_id': {{ o.question_id }}}"
                                 placeholder="answer"><label>{{ o.option }}</label>
                             <br>
                             {% endfor %}
@@ -148,5 +150,14 @@
         {% endif %}
     </div> <!-- end here -->
 </body>
+
+<script>
+    $('td input').click(function () {
+        if ($(this).prop('checked')) {
+            $('td input:checkbox').prop('checked', false);
+            $(this).prop('checked', true);
+        }
+    });
+</script>
 
 </html>

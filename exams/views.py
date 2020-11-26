@@ -18,19 +18,27 @@ from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from openpyxl import Workbook
 import re
 from django.core.exceptions import ObjectDoesNotExist
+import ast
 
 def show_exam_list(request):
     user_id = request.session.get('user_id')
     exam_list = Exams.objects.all().order_by('-created_at')
+    exam_ids_list = list(Exams.objects.all().values_list('id', flat = True))
+    print('exam_ids_list', exam_ids_list)
     get_exam_users_id_list = Exam_Users.objects.filter(user_id = user_id).filter(count = 0).values_list('exam_id', 'id') #從user那些尚未完成的考卷中拿到Exam_Users.exam_id及Exam_Users.id
-    last_answer_list = [] #紀錄user上次做到哪一題的結果list
+    last_answer_list = [] #紀錄user上次做到哪一題的結果 [{'exam_id': 222, 'next_answer_page': 1}]
+    user_incomplete_exam_id_list = [] #紀錄user在Exam_Users表裡面尚未完成的exam_id，例如 [217, 221, 222]
     for (exam_id, exam_users_id) in get_exam_users_id_list:
         get_questions_id = Questions.objects.filter(exam_id = exam_id).values_list('id', flat=True) #拿到該exam_id中的所有Questions題目id
         get_user_answered_question_id = Option_Users.objects.filter(exam_users_id = exam_users_id).values_list('question_id', flat=True) #拿到所有user在該exam_id中回答過的question_id
-        last_answer_id = min(set(get_questions_id) - set(get_user_answered_question_id)) #算出user上次未完成的題目的最小question_id = 取最小值(所有題目的id - 使用者回答過的題目)
-        page_num = list(get_questions_id).index(last_answer_id) #拿到上次回答是第幾頁
-        last_answer_list.append({"exam_id": exam_id, "next_answer_page": page_num + 1}) 
-    return TemplateResponse(request, 'exam_list.html', {'exam_list': exam_list, 'last_answer_list': last_answer_list})
+        if(set(get_questions_id) == set(get_user_answered_question_id)): #如果user都填完所有答案，但尚未交卷
+            last_answer_id = max(set(get_questions_id)) #就取出最後一題的question id
+        else: #如果user還有1題以上的題目尚未答題
+            last_answer_id = min(set(get_questions_id) - set(get_user_answered_question_id)) #尚未完成題目的最小question_id = 取最小值(所有題目的id - 使用者回答過的題目)
+        page_num = list(get_questions_id).index(last_answer_id) #拿到尚未答題的頁數
+        last_answer_list.append({"exam_id": exam_id, "next_answer_page": page_num + 1})
+        user_incomplete_exam_id_list.append(exam_id)
+    return TemplateResponse(request, 'exam_list.html', {'exam_list': exam_list, 'last_answer_list': last_answer_list, 'user_incomplete_exam_id_list': user_incomplete_exam_id_list, 'exam_ids_list': exam_ids_list})
 
 def show_exam_user_list(request, exam_id):
     user_list = Exam_Users.objects.filter(exam_id = exam_id).exclude(count = 0).select_related('user').values('user__id', 'user__name', 'date', 'count').order_by('user__name', '-created_at')
@@ -196,29 +204,41 @@ def show_exam(request, exam_id):
 def user_answers(request, exam_id):
     user_id = request.session.get('user_id')
     exam_id = exam_id
+    questions_id_list = list(Questions.objects.filter(exam_id = exam_id).values_list('id', flat = True)) #拿到所有question的id
     current_page = request.POST.get('current_page') #從前端的input有個name叫做"current_page"，印出型別是str，所以next_page要加1之前要轉int()
-    option_ids_list = request.POST.getlist("option_id[]")
-    if(not option_ids_list): #如果考生沒有勾選答案就提交就回到原本題目
+    user_answers_list = request.POST.getlist("user_answers[]")
+    if(not user_answers_list): #如果考生沒有勾選答案就提交就回到原本題目
         messages.error(request, "You have not selected any answer!")
         return HttpResponseRedirect(reverse('show_exam', kwargs={"exam_id": exam_id}) + "?page=" + current_page) #跳回到同一題
+    
     has_incomplete_exam_record = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(count = 0).count()#找出user在交卷紀錄裡面是否有count = 0的紀錄
     if(has_incomplete_exam_record):#如果user有尚未交卷的紀錄就讓user繼續作答
-        for option_id in option_ids_list:
-            question_id = Options.objects.filter(id = option_id)[0].question_id
+        for user_answer_str in user_answers_list: #user_answer = {'option_id': 110762, 'next_question_id': 15543, 'question_id': 15542}
+            user_answer_dict = ast.literal_eval(user_answer_str) #ast.literal_eval是拿來str轉換dict
+            #開始判斷user送出答案要轉跳的頁面是否為最後一題
+            if(user_answer_dict['next_question_id'] is None): #如果是最後一題則停留在原畫面
+                next_question_page = int(current_page) - 1 #因為最下面的return有 + 1, 所以這裡預先 - 1
+            else: #如果不是最後一題，判斷要去的頁面是第幾頁
+                next_question_page = questions_id_list.index(user_answer_dict['next_question_id']) #找到next_question_id是在全部questions的第幾個位置，next_question_id_index就是要轉跳到第幾頁
             exam_users_id = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(count = 0)[0].id #目前user尚未完成的考卷id
-            create_option_users = Option_Users(user_id = user_id, option_id = option_id, question_id = question_id, exam_id = exam_id, exam_users_id = exam_users_id) #把user答案寫入DB
+            create_option_users = Option_Users(user_id = user_id, option_id = user_answer_dict['option_id'], question_id = user_answer_dict['question_id'], exam_id = exam_id, exam_users_id = exam_users_id) #把user答案寫入DB
             create_option_users.save()
         messages.success(request, "Answer has been sent successfully!")
     else:#表示user之前都交卷了，給他創建新的考卷，count = 0
         create_exam_users = Exam_Users(user_id = user_id, exam_id = exam_id, date = datetime.datetime.now(), count = 0)
         create_exam_users.save() #user作答完就紀錄在exam_user上，用來計算他是第幾次應考
-        for option_id in option_ids_list:
-            question_id = Options.objects.filter(id = option_id)[0].question_id
+        for user_answer_str in user_answers_list:
+            user_answer_dict = ast.literal_eval(user_answer_str) #ast.literal_eval是拿來str轉換dict
+            #開始判斷user送出答案要轉跳的頁面是否為最後一題
+            if(user_answer_dict['next_question_id'] is None): #如果是最後一題則停留在原畫面
+                next_question_page = int(current_page) - 1 #因為最下面的return有 + 1, 所以這裡預先 - 1
+            else: #如果不是最後一題，判斷要去的頁面是第幾頁
+                next_question_page = questions_id_list.index(user_answer_dict['next_question_id']) #找到next_question_id是在全部questions的第幾個位置，next_question_id_index就是要轉跳到第幾頁
             exam_users_id = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(count = 0)[0].id #目前user尚未完成的考卷id
-            create_option_users = Option_Users(user_id = user_id, option_id = option_id, question_id = question_id, exam_id = exam_id, exam_users_id = exam_users_id) #把user答案寫入DB
+            create_option_users = Option_Users(user_id = user_id, option_id = user_answer_dict['option_id'], question_id = user_answer_dict['question_id'], exam_id = exam_id, exam_users_id = exam_users_id) #把user答案寫入DB
             create_option_users.save()
-        messages.success(request, "Has sent successfully!")
-    return HttpResponseRedirect(reverse('show_exam', kwargs={"exam_id": exam_id}) + "?page=" + str(int(current_page) + 1)) #跳到下一題
+        messages.success(request, "Answer has been sent successfully!")
+    return HttpResponseRedirect(reverse('show_exam', kwargs={"exam_id": exam_id}) + "?page=" + str(int(next_question_page) + 1)) #跳到下一題，因為index是從0開始所以要 + 1
 
 def user_exam_completed(request, exam_id, user_id):
     user_id = request.session.get('user_id')
