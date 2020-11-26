@@ -33,9 +33,9 @@
         </ol>
 
         {% if not user_name %}
-        <span>please <a href="/login">login</a></span>
+        <span>please <a href="{% url 'login' %}">login</a></span>
         {% else %}
-        <span><a href="/logout">log out</a></span>
+        <span><a href="{% url 'logout' %}">log out</a></span>
         {% endif %}
         <h2>Hi! Wellcome {{ user_name|default:'Guest' }}</h2><br>
 
@@ -51,8 +51,6 @@
         </table>
 
         <br>
-
-        {% if questions_in_page.has_other_pages %}
 
         {% if questions_in_page.has_previous %}
         <button><a href="?page={{ questions_in_page.previous_page_number }}">previous_question</a></button>
@@ -70,8 +68,6 @@
         <button style="float: right;"><a href="?page={{ questions_in_page.next_page_number }}">next_page</a></button>
         {% else %}
         <button style="float: right;" class="disabled"><span>next_page</span></button>
-        {% endif %}
-
         {% endif %}
 
         <br><br>
@@ -143,12 +139,14 @@
         </form>
 
         <br><br>
-        {% if questions_in_page.has_other_pages %}
+     
         {% if not questions_in_page.has_next %}
         <a href="{% url 'user_exam_completed' exam_id=exam_id user_id=user_id %}"><button>Completed! 確定交卷</button></a>
         {% endif %}
-        {% endif %}
     </div> <!-- end here -->
+    
+    <br><br>
+    
 </body>
 
 <script>
