@@ -78,12 +78,12 @@
             <table style="width:100%;" border="1">
                 <tbody>
                     <tr>
-                        <td rowspan="2" style="padding: 10pt">
+                        <td rowspan="2" style="width:1%; padding-left: 10pt; padding-right: 10pt; text-align: center;">
                             <strong>{{ forloop.counter0|add:questions_in_page.end_index }}</strong></td>
-                        <td style="width:8%">
+                        <td style="width:1%; padding-left: 10pt; padding-right: 10pt; text-align: center;">
                             <strong>Question</strong>
                         </td>
-                        <td>
+                        <td style="width: auto;">
                             <p style="color: blue;">{{ q.question }}</p>
                             {% if videos %}
                             {% for v in videos %}
@@ -113,7 +113,7 @@
                         </td>
                     </tr>
                     <tr>
-                        <td>
+                        <td style="text-align: center;">
                             <strong>Options</strong>
                         </td>
                         <td>
