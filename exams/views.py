@@ -219,10 +219,10 @@ def user_answers(request, exam_id):
         for user_answer_str in user_answers_list: #user_answer = {'option_id': 110762, 'next_question_id': 15543, 'question_id': 15542}
             user_answer_dict = ast.literal_eval(user_answer_str) #ast.literal_eval是拿來str轉換dict
             #開始判斷user送出答案要轉跳的頁面是否為最後一題
-            if(user_answer_dict['next_question_id'] is None): #如果是最後一題則停留在原畫面
-                next_question_page = int(current_page) - 1 #因為最下面的return有 + 1, 所以這裡預先 - 1
-            else: #如果不是最後一題，判斷要去的頁面是第幾頁
+            if(user_answer_dict['next_question_id']): #如果不是最後一題，判斷要去的頁面是第幾頁
                 next_question_page = questions_id_list.index(user_answer_dict['next_question_id']) #找到next_question_id是在全部questions的第幾個位置，next_question_id_index就是要轉跳到第幾頁
+            else: #如果是最後一題則停留在原畫面
+                next_question_page = int(current_page) - 1 #因為最下面的return有 + 1, 所以這裡預先 - 1
             exam_users_id = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(count = 0)[0].id #目前user尚未完成的考卷id
             create_option_users = Option_Users(user_id = user_id, option_id = user_answer_dict['option_id'], question_id = user_answer_dict['question_id'], exam_id = exam_id, exam_users_id = exam_users_id) #把user答案寫入DB
             create_option_users.save()
@@ -233,10 +233,10 @@ def user_answers(request, exam_id):
         for user_answer_str in user_answers_list:
             user_answer_dict = ast.literal_eval(user_answer_str) #ast.literal_eval是拿來str轉換dict
             #開始判斷user送出答案要轉跳的頁面是否為最後一題
-            if(user_answer_dict['next_question_id'] is None): #如果是最後一題則停留在原畫面
-                next_question_page = int(current_page) - 1 #因為最下面的return有 + 1, 所以這裡預先 - 1
-            else: #如果不是最後一題，判斷要去的頁面是第幾頁
+            if(user_answer_dict['next_question_id']): #如果不是最後一題，判斷要去的頁面是第幾頁
                 next_question_page = questions_id_list.index(user_answer_dict['next_question_id']) #找到next_question_id是在全部questions的第幾個位置，next_question_id_index就是要轉跳到第幾頁
+            else: #如果是最後一題則停留在原畫面
+                next_question_page = int(current_page) - 1 #因為最下面的return有 + 1, 所以這裡預先 - 1
             exam_users_id = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(count = 0)[0].id #目前user尚未完成的考卷id
             create_option_users = Option_Users(user_id = user_id, option_id = user_answer_dict['option_id'], question_id = user_answer_dict['question_id'], exam_id = exam_id, exam_users_id = exam_users_id) #把user答案寫入DB
             create_option_users.save()
