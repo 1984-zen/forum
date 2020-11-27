@@ -11,12 +11,12 @@
 <body>
   <div class="container" style="text-align: center;">
     <!-- staart here -->
-    {% if not username %}
-        <span>please <a href="/login">login</a></span>
+    {% if not user_name %}
+        <span>please <a href="{% url 'login' %}">login</a></span>
         {% else %}
-        <span><a href="/logout">log out</a></span>
+        <span><a href="{% url 'logout' %}">log out</a></span>
         {% endif %}
-        <h2>Hi! Wellcome {{ username|default:'Guest' }}</h2><br>
+        <h2>Hi! Wellcome {{ user_name|default:'Guest' }}</h2><br>
 
     <h1>Select app</h1>
     

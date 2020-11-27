@@ -4,16 +4,10 @@ from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.contrib.auth.hashers import make_password, check_password
 from django.contrib import messages
+from django.template.response import TemplateResponse
 
 def index(request):
-    user_id = request.session.get('user_id')
-    has_user = Users.objects.filter(id = user_id).count()
-    if(has_user):
-        user = Users.objects.get(id = user_id)
-        username = user.name
-    else:
-        username = ""
-    return render(request, 'index.html', {'username': username})
+    return TemplateResponse(request, 'index.html', {})
 
 def register(request):
     if(request.method == 'POST'):
