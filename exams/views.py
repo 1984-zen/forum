@@ -180,9 +180,12 @@ def handle_uploaded_image_file(i):
 def add_exam_questions(request, exam_id):
     exam = Exams.objects.get(id = exam_id)
     questions = exam.questions.all()
+    page = request.GET.get('page', 1)
+    paginator = Paginator(questions, 5)
+    questions_in_page = paginator.page(page)
     videos = exam.exam_files.filter(type = 'media')
     images = exam.exam_files.filter(type = 'image')
-    return TemplateResponse(request, 'add_exam_questions.html', {'exam_id': exam_id, 'exam': exam, 'questions': questions, 'videos': videos, 'images': images})
+    return TemplateResponse(request, 'add_exam_questions.html', {'exam_id': exam_id, 'exam': exam, 'questions': questions, 'videos': videos, 'images': images, 'questions_in_page': questions_in_page})
 
 def show_exam(request, exam_id):
     user_id = request.session.get('user_id')
