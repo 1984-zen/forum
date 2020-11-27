@@ -34,6 +34,20 @@ class CheckUserAuthorizationMiddleware:
         has_user = Users.objects.filter(id = user_id).count()
         is_admin = Users.objects.filter(id = user_id).filter(is_admin = 1).count()
         
+        if (view_func.__name__ == "update_question"):
+            if(is_admin): #如果具有admin身分
+                return None # 回傳None可以繼續往下一個middleware走
+            else: #如果不具有admin身分的話
+                messages.error(request, "you have no authority to access this router")
+                return HttpResponseRedirect(reverse("show_exam_list"))
+
+        if (view_func.__name__ == "update_next_question_id"):
+            if(is_admin): #如果具有admin身分
+                return None # 回傳None可以繼續往下一個middleware走
+            else: #如果不具有admin身分的話
+                messages.error(request, "you have no authority to access this router")
+                return HttpResponseRedirect(reverse("show_exam_list"))
+                
         if (view_func.__name__ == "login"):
             if(has_user): #如果具有member身分
                 return HttpResponseRedirect(reverse("index")) # 回傳None可以繼續往下一個middleware走
