@@ -40,10 +40,11 @@ def login_post(request):
             user = Users.objects.get(account = account)
             if(check_password(password, user.password)):
                 request.session['user_id'] = user.id
+                messages.success(request, "Log in successfully!")
                 return HttpResponseRedirect(reverse("index")) #登入成功就去index.html
             else:
                 messages.error(request, "account or password is wrong!")
-            return HttpResponseRedirect(reverse("login"))
+                return HttpResponseRedirect(reverse("login"))
         except Users.DoesNotExist:
             messages.error(request, "account or password is wrong!")
             return HttpResponseRedirect(reverse("login"))
@@ -51,4 +52,5 @@ def login_post(request):
 
 def logout(request):
     del request.session['user_id']
+    messages.success(request, "Log out successfully!")
     return HttpResponseRedirect(reverse("login"))

@@ -10,7 +10,21 @@
 
 <body>
   <div class="container" style="text-align: center;">
-    <!-- staart here -->
+    <!-- start here -->
+    {% if messages %}
+        {% for message in messages %}
+        {% if message.level == DEFAULT_MESSAGE_LEVELS.SUCCESS %}
+        <div class="alert alert-success" role="alert" style="text-align: center;">
+            {{ message }}
+        </div>
+        {% elif message.level == DEFAULT_MESSAGE_LEVELS.ERROR %}
+        <div class="alert alert-warning" role="alert" style="text-align: center;">
+            {{ message }}
+        </div>
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+        
     {% if not user_name %}
         <span>please <a href="{% url 'login' %}">login</a></span>
         {% else %}
