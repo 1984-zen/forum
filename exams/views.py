@@ -72,7 +72,6 @@ def update_question(request, exam_id, question_id):
             next_question_list.append({"next_question": next_question, "option_id": option_id})
         except ObjectDoesNotExist:
             next_question_list.append({"next_question": None, "option_id": option_id})
-    print(next_question_list)
     return TemplateResponse(request, 'update_question.html', {'exam': exam, 'questions': questions, 'question': question, 'next_question_list': next_question_list}) #這裡是空object是為了能接到middleware的process_template_response()的response
 
 def update_next_question_id(request, exam_id, question_id, option_id):
@@ -109,9 +108,9 @@ def get_ajax_answers_options(request):
         exam_id = request.POST.get("exam_id")
         create_question = Questions(question = question, exam_id = exam_id)
         create_question.save()
-
-        last_question = Questions.objects.get(id = create_question.id - 1) #找到上一個question_id
-        last_options = Options.objects.filter(question_id = last_question.id).filter(next_question_id = None) #找到它底下的options是屬於沒有指定任何next_question_id
+        
+        last_question_id = Questions.objects.filter(exam_id = exam_id).order_by('-id')[1].id #找到上一個question_id
+        last_options = Options.objects.filter(question_id = last_question_id).filter(next_question_id = None) #找到它底下的options是屬於沒有指定任何next_question_id
         update_last_options = last_options.update(next_question_id = create_question.id) #就幫他們都指定剛剛創建好的question_id
 
         for i in range(len(option_list)):
