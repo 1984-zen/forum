@@ -24,7 +24,6 @@ def show_exam_list(request):
     user_id = request.session.get('user_id')
     exam_list = Exams.objects.all().order_by('-created_at')
     exam_ids_list = list(Exams.objects.all().values_list('id', flat = True))
-    print('exam_ids_list', exam_ids_list)
     get_exam_users_id_list = Exam_Users.objects.filter(user_id = user_id).filter(count = 0).values_list('exam_id', 'id') #從user那些尚未完成的考卷中拿到Exam_Users.exam_id及Exam_Users.id
     last_answer_list = [] #紀錄user上次做到哪一題的結果 [{'exam_id': 222, 'next_answer_page': 1}]
     user_incomplete_exam_id_list = [] #紀錄user在Exam_Users表裡面尚未完成的exam_id，例如 [217, 221, 222]
@@ -197,12 +196,15 @@ def show_exam(request, exam_id):
     videos = exam.exam_files.filter(type = 'media')
     images = exam.exam_files.filter(type = 'image')
     has_user_incomplete_record = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(count = 0).count() #找到user未完成的考卷count = 0
-    if(has_user_incomplete_record):
-        exam_users_id = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(count = 0)[0].id
-        user_has_been_answered = Option_Users.objects.filter(exam_users_id = exam_users_id).values_list('question_id', flat=True)
-    else:
-        user_has_been_answered = []
-    return TemplateResponse(request, 'show_exam.html', {'user_id': user_id, 'exam_id': exam_id, 'exam': exam, 'exam_id': exam_id, 'questions_in_page': questions_in_page, 'videos': videos, 'images': images, 'user_has_been_answered': user_has_been_answered})
+    if(has_user_incomplete_record): #如果user正在做尚未完成的考卷
+        #以下list用來前端判斷user有無回答過question或option，如果有前端就顯示出來
+        exam_users_id = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(count = 0)[0].id #查詢是哪個exam_users的id
+        user_has_been_answered_question_list = list(Option_Users.objects.filter(exam_users_id = exam_users_id).values_list('question_id', flat=True)) #把所有關於這張位完成考卷所有user回答過的question_id都列出
+        user_has_been_answered_option_list = list(Option_Users.objects.filter(exam_users_id = exam_users_id).values_list('option_id', flat=True)) #把所有關於這張位完成考卷所有user回答過的option_id都列出
+    else: #如果沒有就回傳空list給前端不顯示
+        user_has_been_answered_question_list = [] #user沒有回答過任何question
+        user_has_been_answered_option_list = [] #user沒有回答過任何option
+    return TemplateResponse(request, 'show_exam.html', {'user_id': user_id, 'exam_id': exam_id, 'exam': exam, 'exam_id': exam_id, 'questions_in_page': questions_in_page, 'videos': videos, 'images': images, 'user_has_been_answered_question_list': user_has_been_answered_question_list, 'user_has_been_answered_option_list': user_has_been_answered_option_list})
 
 def user_answers(request, exam_id):
     user_id = request.session.get('user_id')

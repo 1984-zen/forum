@@ -112,10 +112,17 @@
                         </td>
                         <td>
                             {% for o in q.options.all %}
+                            {% if o.id in user_has_been_answered_option_list %}
+                            <input type="checkbox" name="user_answers[]"
+                                value="{'option_id': {{ o.id }}, 'next_question_id': {{ o.next_question_id }}, 'question_id': {{ o.question_id }}}"
+                                placeholder="answer" checked><label>{{ o.option }}</label>
+                            <br>
+                            {% else %}
                             <input type="checkbox" name="user_answers[]"
                                 value="{'option_id': {{ o.id }}, 'next_question_id': {{ o.next_question_id }}, 'question_id': {{ o.question_id }}}"
                                 placeholder="answer"><label>{{ o.option }}</label>
                             <br>
+                            {% endif %}
                             {% endfor %}
                         </td>
                     </tr>
@@ -124,7 +131,7 @@
 
             <br><br>
 
-            {% if q.id in user_has_been_answered %}
+            {% if q.id in user_has_been_answered_question_list %}
             <button disabled="disabled" type="submit">提交答案</button>
             {% else %}
             <button type="submit">提交答案</button>
