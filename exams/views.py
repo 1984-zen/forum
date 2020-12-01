@@ -179,7 +179,7 @@ def handle_uploaded_image_file(i):
 
 def add_exam_questions(request, exam_id):
     exam = Exams.objects.get(id = exam_id)
-    questions = exam.questions.all()
+    questions = exam.questions.all().order_by('created_at')
     page = request.GET.get('page', 1)
     paginator = Paginator(questions, 5)
     questions_in_page = paginator.page(page)
@@ -190,7 +190,7 @@ def add_exam_questions(request, exam_id):
 def show_exam(request, exam_id):
     user_id = request.session.get('user_id')
     exam = Exams.objects.get(id = exam_id)
-    questions = exam.questions.all()
+    questions = exam.questions.all().order_by('created_at')
     page = request.GET.get('page', 1)
     paginator = Paginator(questions, 1)
     questions_in_page = paginator.page(page)
