@@ -64,7 +64,7 @@
         <br><br>
 
         <div style="text-align: right;">
-            <a href="/exams/{{ exam.id }}"><button>Finished! 分享給別人測驗</button></a>
+            <span>如果出完考題，可以點選此產生考卷: </span><a href="/exams/{{ exam.id }}"><button type="button" class="btn btn-success">開始作答</button></a>
         </div>
 
         <table style="width:100%">
@@ -79,17 +79,22 @@
         </table>
 
         <br>
-
+        <ul>
+            <li style="color:red;"><small>紅色是正確答案</small></li>
+            <li><small>黑色不是正確答案</small></li>
+        </ul>
         {% for q in questions_in_page %}
         <table style="width:100%;" border="1">
             <tbody>
                 <tr>
-                    <td style="width:8%">
+                    <td style="width:1%; padding-left: 10pt; padding-right: 10pt; text-align: center;">
                         <strong>Question</strong>
-                        <a href="/exams/{{ q.exam_id }}/questions/{{ q.id }}/delete"><button>Delete
-                                question</button></a>
-                        <a href="{% url 'update_question' exam_id=q.exam_id question_id=q.id %}"><button>update
-                                question</button></a>
+                        <a href="{% url 'update_question' exam_id=q.exam_id question_id=q.id %}"><button type="button" class="btn btn-primary">Update question</button></a>
+                        
+                        <br>
+                        <br>
+                        
+                        <a href="/exams/{{ q.exam_id }}/questions/{{ q.id }}/delete"><button type="button" class="btn btn-danger">Delete question</button></a>
                     </td>
                     <td>
                         <p style="color: blue;">{{ q.question }}</p>
@@ -101,8 +106,8 @@
                             </source>
                             Your browser does not support the video tag.
                         </video>
-                        <a
-                            href="/exams/{{ q.exam_id }}/questions/{{ q.id }}/question_files/{{ v.id }}/delete"><button>Delete</button></a>
+                        <a href="/exams/{{ q.exam_id }}/questions/{{ q.id }}/question_files/{{ v.id }}/delete"><button type="button" class="btn btn-danger">Delete</button></a>
+
                         <br>
 
                         {% endif %}
@@ -113,8 +118,7 @@
                         {% for i in images %}
                         {% if i.question_id == q.id %}
                         <img src="{{ MEDIA_URL }}{{ i.file_path }}" width='900'>
-                        <a
-                            href="/exams/{{ q.exam_id }}/questions/{{ q.id }}/question_files/{{ i.id }}/delete"><button>Delete</button></a>
+                        <a href="/exams/{{ q.exam_id }}/questions/{{ q.id }}/question_files/{{ i.id }}/delete"><button type="button" class="btn btn-danger">Delete</button></a>
 
                         <br>
 
@@ -124,21 +128,22 @@
                     </td>
                 </tr>
                 <tr>
-                    <td>
+                    <td style="width:1%; padding-left: 10pt; padding-right: 10pt; text-align: center;">
                         <strong>Options</strong>
                     </td>
                     <td>
                         {% for o in q.options.all %}
                         {% if o.option != "" and o.is_answer == 0 %}
                         <ul>
-                            <li>{{ o.option }} <a href="/exams/{{ q.exam_id }}/options/{{ o.id }}/delete"><button>Delete
-                                        option</button></a></li>
+                            <li>{{ o.option }}
+                                <a href="/exams/{{ q.exam_id }}/options/{{ o.id }}/delete"><button type="button" class="btn btn-danger">Delete option</button></a>
+                            </li>
                         </ul>
                         {% elif o.option != "" and o.is_answer == 1 %}
                         <ul>
-                            <li style="color:blueviolet;">{{ o.option }} <a
-                                    href="/exams/{{ q.exam_id }}/options/{{ o.id }}/delete"><button>Delete
-                                        option</button></a></li>
+                            <li style="color:red;">{{ o.option }} 
+                                <a href="/exams/{{ q.exam_id }}/options/{{ o.id }}/delete"><button type="button" class="btn btn-danger">Delete option</button></a>
+                            </li>
                         </ul>
                         {% endif %}
                         {% endfor %}

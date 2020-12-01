@@ -34,7 +34,7 @@
 
     <br>
 
-    {% if is_admin %}
+    {% if is_admin or is_super_admin %}
     <a href="{% url 'new_exam' %}"><button>Create a new exam</button></a>
     {% endif %}
 
@@ -43,35 +43,51 @@
     <table style="width:100%;" border="1">
       <thead>
         <tr>
-          <th>SN</th>
+          <th style="width:1%; padding-left: 10pt; padding-right: 10pt; text-align: center;">SN</th>
           <th>Exam title</th>
         </tr>
       </thead>
       <tbody>
         {% for exam in exam_list %}
         <tr>
-          <td>{{ forloop.counter }}</td>
+          <td style="width:1%; padding-left: 10pt; padding-right: 10pt; text-align: center;">{{ forloop.counter }}</td>
           <td>
             {{ exam.name }}
-            {% if is_admin %}
-            (<a href="{% url 'show_exam_user_list' exam_id=exam.id %}">查看考生結果</a>
-            <!-- , <a href="/exams/new/{{ exam.id }}">更新考題</a> -->
-            )
-            <!-- <ahref="/exams/{{ exam.id }}/delete">
-              <button>Delete
-                exam</button></a> -->
+            {% if is_super_admin %}
+            (<a href="{% url 'show_exam_user_list' exam_id=exam.id %}">查看考生結果</a>)
+            <a href="/exams/new/{{ exam.id }}">
+              <button type="button" class="btn btn-primary">Update exam</button>
+            </a>
+            <a href="/exams/{{ exam.id }}/delete">
+              <button type="button" class="btn btn-danger">Delete exam</button>
+            </a>
+
+            {% elif is_admin and exam.id is 217 %}
+
+            (<a href="{% url 'show_exam_user_list' exam_id=exam.id %}">查看考生結果</a>)
+
+            {% else %}
+
+            (<a href="{% url 'show_exam_user_list' exam_id=exam.id %}">查看考生結果</a>)
+            <a href="/exams/new/{{ exam.id }}">
+              <button type="button" class="btn btn-primary">Update exam</button>
+            </a>
+            <a href="/exams/{{ exam.id }}/delete">
+              <button type="button" class="btn btn-danger" style="float: right;">Delete exam</button></a>
+
             {% endif %}
 
             {% for last_answer in last_answer_list %}
             {% if last_answer.exam_id == exam.id %}
-            <a href="{% url 'show_exam' exam_id=exam.id %}?page={{ last_answer.next_answer_page }}"><button>開始作答</button></a>
+            <a
+              href="{% url 'show_exam' exam_id=exam.id %}?page={{ last_answer.next_answer_page }}"><button type="button" class="btn btn-success">開始作答</button></a>
             <br>
 
             {% endif %}
             {% endfor %}
 
             {% if exam.id not in user_incomplete_exam_id_list %}
-            <a href="{% url 'show_exam' exam_id=exam.id %}?page=1"><button>開始作答</button></a>
+            <a href="{% url 'show_exam' exam_id=exam.id %}?page=1"><button button type="button" class="btn btn-success">開始作答</button></a>
             <br>
 
             {% endif %}

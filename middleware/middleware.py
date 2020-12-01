@@ -32,17 +32,18 @@ class CheckUserAuthorizationMiddleware:
         # It should return either None or an HttpResponse object
         user_id = request.session.get('user_id')
         has_user = Users.objects.filter(id = user_id).count()
+        is_super_admin = Users.objects.filter(id = user_id).filter(is_admin = 2).count()
         is_admin = Users.objects.filter(id = user_id).filter(is_admin = 1).count()
         
         if (view_func.__name__ == "update_question"):
-            if(is_admin): #如果具有admin身分
+            if(is_admin or is_super_admin): #如果具有admin身分
                 return None # 回傳None可以繼續往下一個middleware走
             else: #如果不具有admin身分的話
                 messages.error(request, "you have no authority to access this router")
                 return HttpResponseRedirect(reverse("show_exam_list"))
 
         if (view_func.__name__ == "update_next_question_id"):
-            if(is_admin): #如果具有admin身分
+            if(is_admin or is_super_admin): #如果具有admin身分
                 return None # 回傳None可以繼續往下一個middleware走
             else: #如果不具有admin身分的話
                 messages.error(request, "you have no authority to access this router")
@@ -76,35 +77,35 @@ class CheckUserAuthorizationMiddleware:
                 return HttpResponseRedirect(reverse("show_exam_list"))
 
         if (view_func.__name__ == "show_user_exam_result"):
-            if(is_admin): #如果具有admin身分
+            if(is_admin or is_super_admin): #如果具有admin身分
                 return None # 回傳None可以繼續往下一個middleware走
             else: #如果不具有admin身分的話
                 messages.error(request, "you have no authority to access this router")
                 return HttpResponseRedirect(reverse("show_exam_list"))
 
         if (view_func.__name__ == "add_exam_questions"):
-            if(is_admin): #如果具有admin身分
+            if(is_admin or is_super_admin): #如果具有admin身分
                 return None # 回傳None可以繼續往下一個middleware走
             else: #如果不具有admin身分的話
                 messages.error(request, "you have no authority to access this router")
                 return HttpResponseRedirect(reverse("show_exam_list"))
 
         if (view_func.__name__ == "show_exam_user_list"):
-            if(is_admin): #如果具有admin身分
+            if(is_admin or is_super_admin): #如果具有admin身分
                 return None # 回傳None可以繼續往下一個middleware走
             else: #如果不具有admin身分的話
                 messages.error(request, "you have no authority to access this router")
                 return HttpResponseRedirect(reverse("show_exam_list"))
 
         if (view_func.__name__ == "new_exam"): #可透過Django轉址
-            if(is_admin): #如果具有admin身分
+            if(is_admin or is_super_admin): #如果具有admin身分
                 return None # 回傳None可以繼續往下一個middleware走
             else: #如果不具有admin身分的話
                 messages.error(request, "you have no authority to access this router")
                 return HttpResponseRedirect(reverse("show_exam_list"))
 
         if (view_func.__name__ == "get_ajax_answers_options"): #必須透過ajax轉址，所以獨立寫出來這if
-            if(is_admin): #如果具有admin身分
+            if(is_admin or is_super_admin): #如果具有admin身分
                 return None 
                 # return view_func(request, *view_args, **view_kwargs) #同上return None，也能讓middleware允許繼續執行這view
             else: #如果不具有admin身分的話就讓前端ajax的success去redirect回到"show_exam_list"頁面
@@ -131,4 +132,11 @@ class CheckUserAuthorizationMiddleware:
         is_admin = Users.objects.filter(id = user_id).filter(is_admin = 1).count()
         if(is_admin):
             response.context_data["is_admin"] = True
+        else:
+            response.context_data["is_admin"] = False
+        is_super_admin = Users.objects.filter(id = user_id).filter(is_admin = 2).count()
+        if(is_super_admin):
+            response.context_data["is_super_admin"] = True
+        else:
+            response.context_data["is_super_admin"] = False
         return response
