@@ -60,7 +60,10 @@ def update_question(request, exam_id, question_id):
             has_option_id = str(options_id_list[i]) in is_answer_list # 回傳True or False
             update_is_answer = Options.objects.filter(id = options_id_list[i])
             update_is_answer.update(is_answer = has_option_id, option = option_list[i])
-        return HttpResponseRedirect(reverse("add_more_questions", kwargs={"exam_id": exam_id}))
+        if('next' in request.GET): #如果前端的<form action>裡面有個?next={{request.GET.page}}這個page就是記住從前一頁pass過來的頁數，注意這個key是str
+            return HttpResponseRedirect(reverse("add_more_questions", kwargs={"exam_id": exam_id}) + "?page=" + request.GET.get("next")) #next就是頁數值，就會redirect回到?page=上一個畫面的頁數
+        else: #如果<form action>沒有?next這個key的話
+            return HttpResponseRedirect(reverse("add_more_questions", kwargs={"exam_id": exam_id}))
     exam = Exams.objects.get(id = exam_id) #if(request.method == "GET")顯示update_question.html畫面
     questions = exam.questions.all()
     question = questions.get(id = question_id)

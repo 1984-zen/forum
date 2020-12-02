@@ -89,7 +89,7 @@
                 <tr>
                     <td style="width:1%; padding-left: 10pt; padding-right: 10pt; text-align: center;">
                         <strong>Question</strong>
-                        <a href="{% url 'update_question' exam_id=q.exam_id question_id=q.id %}"><button type="button" class="btn btn-primary">Update question</button></a>
+                        <a href="{% url 'update_question' exam_id=q.exam_id question_id=q.id %}?page={{ request.GET.page|default:1 }}"><button type="button" class="btn btn-primary">Update question</button></a>
                         
                         <br>
                         <br>
