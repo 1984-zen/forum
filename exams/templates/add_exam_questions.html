@@ -238,11 +238,11 @@
             processData: false,
             data: form_data,
             success: function (data) {
-                if (data.exam_id) {
-                    window.location.href = '/exams/new/' + data.exam_id; //這裡拿到後端傳過來的exam_id，寫進data裡面
+                if (data.exam_id) { //如果已經創立好exam只是要增加問題跟選項
+                    window.location.href = window.location.href; //就停留在原url
                 }
-                else if (data.redirect) {
-                    window.location.href = data.redirect;
+                else if (data.redirect) { //如果是新創立exam的話
+                    window.location.href = data.redirect; //就redirect
                 }
                 else {
                     window.location.href = '/exams'

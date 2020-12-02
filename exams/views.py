@@ -108,10 +108,11 @@ def get_ajax_answers_options(request):
     option_list = request.POST.get("option_list").split(',') #因為從前端接收到的值= True,False所以用split(',')變成['True', 'False']
     answer_list = request.POST.get("answer_list").split(',') #因為從前端接收到的值= True,False所以用split(',')變成['True', 'False']
     if(request.POST.get("exam_id")): #如果已經創立好exam只是要增加問題跟選項
+        #開始新增問題
         exam_id = request.POST.get("exam_id")
         create_question = Questions(question = question, exam_id = exam_id)
         create_question.save()
-        
+        #開始要幫上一個question更新next_question_id
         last_question_id = Questions.objects.filter(exam_id = exam_id).order_by('-id')[1].id #找到上一個question_id
         last_options = Options.objects.filter(question_id = last_question_id).filter(next_question_id = None) #找到它底下的options是屬於沒有指定任何next_question_id
         update_last_options = last_options.update(next_question_id = create_question.id) #就幫他們都指定剛剛創建好的question_id
@@ -133,7 +134,7 @@ def get_ajax_answers_options(request):
                 fname, file_relative_path = handle_uploaded_image_file(image)
                 create_file_path = Exam_files(name = fname, file_path = file_relative_path, type = "image", exam_id = exam_id, question_id = create_question.id)
                 create_file_path.save()
-        return JsonResponse({'exam_id': exam_id})
+        return JsonResponse({'exam_id': exam_id}) #回傳data的值給前端的Ajax，並就停留在原url
     else: #如果是新建立exam
         exam_title = request.POST.get("exam_title")
         create_exam = Exams(user_id = user_id, name = exam_title)
