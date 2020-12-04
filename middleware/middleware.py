@@ -10,7 +10,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 class CheckUserAuthorizationMiddleware:
-    def __init__(self, get_response):
+    def __init__(self, get_response=None):
         self.get_response = get_response
 
     def __call__(self, request):
@@ -127,7 +127,7 @@ class CheckUserAuthorizationMiddleware:
         user_id = request.session.get('user_id')
         has_user = Users.objects.filter(id = user_id).count()
         if(has_user):
-            user_name = Users.objects.get(id = user_id)
+            user_name = Users.objects.get(id = user_id).username
             response.context_data["user_name"] = user_name #把user_name會透過view的TemplateResponse去傳到全部template
         is_admin = Users.objects.filter(id = user_id).filter(is_admin = 1).count()
         if(is_admin):

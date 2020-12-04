@@ -24,7 +24,7 @@ def register(request):
             return HttpResponseRedirect(reverse("register"))
         if(password == re_password):
             password_sha256 = make_password(password, "123", 'pbkdf2_sha256')
-            create_user = Users(name = username, account = account, password = password_sha256)
+            create_user = Users(username = username, account = account, password = password_sha256)
             create_user.save()
             return HttpResponseRedirect(reverse("login"))
     return render(request, 'register.html')

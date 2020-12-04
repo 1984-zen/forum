@@ -40,7 +40,7 @@ def show_exam_list(request):
     return TemplateResponse(request, 'exam_list.html', {'exam_list': exam_list, 'last_answer_list': last_answer_list, 'user_incomplete_exam_id_list': user_incomplete_exam_id_list, 'exam_ids_list': exam_ids_list})
 
 def show_exam_user_list(request, exam_id):
-    user_list = Exam_Users.objects.filter(exam_id = exam_id).exclude(count = 0).select_related('user').values('user__id', 'user__name', 'date', 'count').order_by('user__name', '-created_at')
+    user_list = Exam_Users.objects.filter(exam_id = exam_id).exclude(count = 0).select_related('user').values('user__id', 'user__username', 'date', 'count').order_by('user__username', '-created_at')
     exam = Exams.objects.get(id = exam_id)
     return TemplateResponse(request, 'exam_user_list.html', {'user_list': user_list, 'exam': exam})
 
@@ -298,7 +298,7 @@ def delete_exam(request, exam_id):
     return HttpResponseRedirect(reverse("show_exam_list"))
 
 def export_user_answer_xls(request, exam_id, user_id, user_exam_count):
-    user_name = Users.objects.get(id = user_id).name
+    user_name = Users.objects.get(id = user_id).username
     exam_date = Exam_Users.objects.filter(exam_id = exam_id).filter(user_id = user_id).filter(count = user_exam_count).values('date')[0]['date'].strftime('%Y-%m-%d_%H%M')
     exam_title = Exams.objects.get(id = exam_id).name
     response = HttpResponse(content_type='application/ms-excel') #匯出excel是用response的content-type

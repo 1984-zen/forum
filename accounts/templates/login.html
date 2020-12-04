@@ -36,8 +36,11 @@
       <div>
         <label>password</label>
         <input type="password" name="password" required="true">
+        <span>(<a href="{% url 'password_reset' %}">Retrieve password</a>)</span>
       </div>
+
       <br>
+      
       <button type="submit">send</button>
     </form>
   </div> <!-- end here -->

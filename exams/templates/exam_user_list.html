@@ -53,7 +53,7 @@
               {{ user.count }}
             </td>
             <td>
-              <a href="{% url 'show_user_exam_result' exam_id=exam.id user_id=user.user__id user_exam_count=user.count %}">{{ user.user__name }}</a>
+              <a href="{% url 'show_user_exam_result' exam_id=exam.id user_id=user.user__id user_exam_count=user.count %}">{{ user.user__username }}</a>
             </td>
             <td>
               {{ user.date }}
