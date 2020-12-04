@@ -309,25 +309,28 @@ def export_user_answer_xls(request, exam_id, user_id, user_exam_count):
     ws = wb.active #拿到地1個sheet[0]
     ws.title = f"{user_name}_answer_{exam_date}" #命名sheet名稱
 
-    questions = Questions.objects.filter(exam_id = 217).values('id') #考捲id=217
+    exam_users_id = Exam_Users.objects.filter(exam_id = exam_id).filter(user_id = user_id).filter(count = user_exam_count).values('id')[0]['id']
+    questions = Questions.objects.filter(exam_id = exam_id).values('id', 'question') #列出該考卷的所有question(id及題目名稱)
     #[{'id': 1724}, {'id': 1725}...]
-    user_answers = Option_Users.objects.filter(exam_id = 217).filter(user_id = user_id).select_related('option').values('question_id','option__option')
+    user_answers = Option_Users.objects.filter(exam_id = exam_id).filter(user_id = user_id).filter(exam_users_id = exam_users_id).select_related('option').values('question_id','option__option') #篩選出user有回答的question_id及勾選的選項名稱
     #<QuerySet [{'question_id': 1728, 'option__option': 'Apical 3-chamber–color'},...]
 
     #開始寫入excel
     #寫入欄位
-    ws.cell(1, 1).value = '試卷名稱_Exam_title' # row=1, col=1欄位名稱'試卷名稱_Exam_title'
-    ws.cell(2, 1).value = 'Question' # row=2, col=1欄位名稱'Question'
-    ws.cell(2, 2).value = 'Answers' # row=2, col=2欄位名稱'Answers'
+    ws.cell(1, 1).value = '試卷名稱' # row=1, col=1欄位名稱'試卷名稱'
+    ws.cell(2, 1).value = '題號' # row=2, col=1欄位名稱'題號'
+    ws.cell(2, 2).value = 'Question' # row=2, col=2欄位名稱'Question'
+    ws.cell(2, 3).value = 'Answers' # row=2, col=3欄位名稱'Answers'
 
     #寫入內容
-    ws.cell(1, 2).value = exam_title # row=1, col=2'Exam_title'
-    for i in range(len(questions)): #印出題目的流水號從1~13809
-        ws.cell(i+3, 1).value = i + 1 #question流水號從1開始
+    ws.cell(1, 2).value = exam_title # row=1, col=2 '試卷名稱value'
+    for i in range(len(questions)):
+        ws.cell(i+3, 1).value = i + 1 #紀錄題號的流水號從1開始
+        ws.cell(i+3, 2).value = questions[i]['question'] #紀錄題目名稱
         for user_answer in user_answers: #user_answers[]
             if(user_answer['question_id'] == questions[i]['id']): #檢查user有回答這個question的話...就紀錄user勾選的選項
-                count_user_answer_has_more_than_one = Option_Users.objects.filter(exam_id = exam_id).filter(user_id = user_id).filter(question_id = user_answer['question_id']).values('question_id','option__option')#如果user複選的話...
+                count_user_answer_has_more_than_one = Option_Users.objects.filter(exam_id = exam_id).filter(user_id = user_id).filter(question_id = user_answer['question_id']).filter(exam_users_id = exam_users_id).values('question_id','option__option')#如果user複選的話...
                 for j in range(count_user_answer_has_more_than_one.count()): #用for迴圈去橫向紀錄在excel表格
-                    ws.cell(i+3, 2+j).value = count_user_answer_has_more_than_one[j]['option__option'] #user勾選的ansers從row=3, col=2...col=2+j寫入
+                    ws.cell(i+3, 3+j).value = count_user_answer_has_more_than_one[j]['option__option'] #紀錄user勾選的ansers從row=3, col=2...col=2+j寫入
     wb.save(response) #存檔
     return response #匯出到瀏覽器下載
