@@ -251,9 +251,9 @@ def user_answers(request, exam_id):
 def user_exam_completed(request, exam_id, user_id):
     user_id = request.session.get('user_id')
     exam_id = exam_id
-    user_has_completed_exam_count = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(count = 1).count() #算出已完成考試的數量
-    update_exam_users_count_to_1 = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(count = 0) #找到user未完成的考卷count = 0
-    update_exam_users_count_to_1.update(count = user_has_completed_exam_count + 1) #已完成考試的MAX數量+1
+    user_has_completed_exam_count = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(count__gt= 0).count() #算出已完成考試的數量
+    update_exam_users_count = Exam_Users.objects.filter(user_id = user_id).filter(exam_id = exam_id).filter(count = 0) #找到user未完成的考卷count = 0
+    update_exam_users_count.update(count = user_has_completed_exam_count + 1) #已完成考試的MAX數量+1
     return HttpResponse("Finished!! All answers have been sent successfully.<a href=\"/exams\">Go back to exam list</a>")
 
 def show_user_exam_result(request, exam_id, user_id, user_exam_count):
