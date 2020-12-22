@@ -1,33 +1,28 @@
 <!DOCTYPE html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <title>Sign up</title>
-  </head>
-  <body>
+
+<head>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+  <meta charset="utf-8">
+  <title>Sign up</title>
+</head>
+
+<body>
+  <div class="container">
+    <!-- start here -->
     <h1>Sign up</h1>
+
+    {% if f.errors %}
+    <p style="color: red;">Please correct the error{{ f.errors|pluralize }} below:</p>
+    {% endif %}
+
     <form method="post" action="/register" enctype="multipart/form-data">{% csrf_token %}
-    <div>
-      <label>account</label>
-      <input type="text" name="account" required="true">
-    </div>
-    <div>
-      <label>name</label>
-      <input type="text" name="username" required="true">
-    </div>
-    
-    
-    <div>
-      <label>password</label>
-       <input type="password" name="password" required="true">
-    </div>
-    <div>
-      <label>re-password</label>
-       <input type="password" name="re_password" required="true">
-    </div>
-        
-    <button type="submit">send</button>
-  </form>
-  
-  </body>
+      {{ f.as_p }}
+      <button type="submit">send</button>
+    </form>
+
+  </div> <!-- end here -->
+</body>
+
 </html>
