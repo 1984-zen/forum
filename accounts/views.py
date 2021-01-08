@@ -24,11 +24,11 @@ def register(request):
             else:
                 has_account = False
             if(has_account):
-                messages.error(request, "This account has been registerd!")
+                messages.error(request, "This account has been registered!")
                 return HttpResponseRedirect(reverse("login")) #如果這組帳號已經被註冊就redirect回log in畫面
             if(password == re_password):
                 password_sha256 = make_password(password, "123", 'pbkdf2_sha256')
-                create_user = Users(username = username, account = account, password = password_sha256, email = account, is_active = 1)
+                create_user = Users(username = username, account = account, password = password_sha256, email = account, is_active = 1, is_admin = 1) #is_admin=1, 是一般會員權限無法刪除重要考題
                 create_user.save()
                 messages.success(request, "Rgister successfully!")
                 return HttpResponseRedirect(reverse("login"))
