@@ -51,29 +51,31 @@
         {% for exam in exam_list %}
         <tr>
           <td style="width:1%; padding-left: 10pt; padding-right: 10pt; text-align: center;">{{ forloop.counter }}</td>
+          {% if user_name %} <!-- if user logged in -->
           <td>
             {{ exam.name }}
-            {% if is_super_admin %}
+            {% if is_super_admin %} <!-- if is super_admin -->
             (<a href="{% url 'show_exam_user_list' exam_id=exam.id %}">查看考生結果</a>)
             <a href="/exams/new/{{ exam.id }}">
               <button type="button" class="btn btn-primary">Update exam</button>
             </a>
             <a href="/exams/{{ exam.id }}/delete">
-              <button type="button" class="btn btn-danger">Delete exam</button>
+              <button type="button" class="btn btn-danger" style="float: right;">Delete exam</button>
             </a>
 
-            {% elif is_admin and exam.id is 217 %}
+            {% elif is_admin and exam.id is 217 %} <!-- if is is_admin and exam_id 217 must keep it forever -->
 
             (<a href="{% url 'show_exam_user_list' exam_id=exam.id %}">查看考生結果</a>)
 
-            {% else %}
+            {% elif is_admin %} <!-- if is is_admin -->
 
             (<a href="{% url 'show_exam_user_list' exam_id=exam.id %}">查看考生結果</a>)
             <a href="/exams/new/{{ exam.id }}">
               <button type="button" class="btn btn-primary">Update exam</button>
             </a>
             <a href="/exams/{{ exam.id }}/delete">
-              <button type="button" class="btn btn-danger" style="float: right;">Delete exam</button></a>
+              <button type="button" class="btn btn-danger" style="float: right;">Delete exam</button>
+            </a>
 
             {% endif %}
 
@@ -92,6 +94,11 @@
 
             {% endif %}
           </td>
+          {% elif not user_name %} <!-- if is Guest -->
+          <td>
+            {{ exam.name }}
+          </td>
+          {% endif %}
         </tr>
         {% endfor %}
       </tbody>
