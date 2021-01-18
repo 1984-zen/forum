@@ -37,7 +37,9 @@ EMAIL_BACKEND、EMAIL_HOST、EMAIL_PORT、EMAIL_HOST_USER、EMAIL_HOST_PASSWORD�
 
 3. 開啟瀏覽器 訪問 127.0.0.1:8000/index
 #
-# 會員系統(Accounts system))
+# 會員系統(Accounts system)
+## DEMO
+![](https://github.com/1984-zen/forum/blob/dev/media/register_demo.gif)
 ## 需求 & Story
 - Story
     - 希望可以管理使用者
@@ -78,6 +80,8 @@ EMAIL_BACKEND、EMAIL_HOST、EMAIL_PORT、EMAIL_HOST_USER、EMAIL_HOST_PASSWORD�
     </details>
 #
 # 論壇網站(Forum web site)
+## DEMO
+![](https://github.com/1984-zen/forum/blob/dev/media/forum_web_site_demo.gif)
 ## 需求 & Story
 - Story
     - 希望有可以互相分享檔案或文字資訊的的網頁平台
@@ -110,6 +114,8 @@ EMAIL_BACKEND、EMAIL_HOST、EMAIL_PORT、EMAIL_HOST_USER、EMAIL_HOST_PASSWORD�
     </details>
 #
 # 線上測驗(Exams web site)
+## DEMO
+![](https://github.com/1984-zen/forum/blob/dev/media/exams_web_site_demo.gif)
 ## 需求 & Story
 - Story
     - 將尚未分類的資料透過Exams平台用人力去逐一標註
