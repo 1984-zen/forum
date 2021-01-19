@@ -53,7 +53,7 @@
 
         <br><br>
 
-        <form method="post" action="{% url 'update_question' exam_id=exam.id question_id=question.id %}?next={{ request.GET.page }}"
+        <form method="post" action="{% url 'update_question' exam_id=exam.id question_id=question.id %}?page={{ request.GET.page }}"
             enctype="multipart/form-data">{% csrf_token %}
 
             <table style="width:100%;" border="1">
@@ -115,7 +115,7 @@
                             {% endfor %}
 
                             (<a
-                                href="{% url 'update_next_question_id' exam_id=exam.id question_id=question.id option_id=o.id %}">change
+                                href="{% url 'update_next_question_id' exam_id=exam.id question_id=question.id option_id=o.id %}?page={{ request.GET.page|default:1 }}">change
                                 Jump to the other question</a>)
                             {% endfor %}
                         </td>

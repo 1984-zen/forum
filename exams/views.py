@@ -60,9 +60,9 @@ def update_question(request, exam_id, question_id):
             has_option_id = str(options_id_list[i]) in is_answer_list # 回傳True or False
             update_is_answer = Options.objects.filter(id = options_id_list[i])
             update_is_answer.update(is_answer = has_option_id, option = option_list[i])
-        if('next' in request.GET): #如果前端的<form action>裡面有個?next={{request.GET.page}}這個page就是記住從前一頁pass過來的頁數，注意這個key是str
-            return HttpResponseRedirect(reverse("add_more_questions", kwargs={"exam_id": exam_id}) + "?page=" + request.GET.get("next")) #next就是頁數值，就會redirect回到?page=上一個畫面的頁數
-        else: #如果<form action>沒有?next這個key的話
+        if('page' in request.GET): #如果前端的formdata裡面有個?page={{request.GET.page}}這個request.GET.page就是記住從前一頁pass過來的頁數，注意這個key是str
+            return HttpResponseRedirect(reverse("add_more_questions", kwargs={"exam_id": exam_id}) + "?page=" + request.GET.get("page")) #page就是頁數值，就會redirect回到?page=上一個畫面的頁數
+        else: #如果formdata沒有"?page="這個key的話
             return HttpResponseRedirect(reverse("add_more_questions", kwargs={"exam_id": exam_id}))
     exam = Exams.objects.get(id = exam_id) #if(request.method == "GET")顯示update_question.html畫面
     questions = exam.questions.all()
@@ -78,7 +78,7 @@ def update_question(request, exam_id, question_id):
     return TemplateResponse(request, 'update_question.html', {'exam': exam, 'questions': questions, 'question': question, 'next_question_list': next_question_list}) #這裡是空object是為了能接到middleware的process_template_response()的response
 
 def update_next_question_id(request, exam_id, question_id, option_id):
-    if(request.method == "POST"):
+    if(request.method == "POST"):# 如果收到前端formdata打過來的POST
         next_quetion_id = request.POST.get("next_question_id")
         if(next_quetion_id == "jump_to_next_default_question"): #前端要回復正常跳到下一個問題，後端判斷此值有兩種可能，一種是不是最後一個問題，就跳到下一題question id + 1, 否則給None這樣DB就會把跳到下一個問題給null值
             try:
@@ -88,14 +88,18 @@ def update_next_question_id(request, exam_id, question_id, option_id):
             update_option_next_question_id = Options.objects.filter(id = option_id)
             update_option_next_question_id.update(next_question_id = query_next_question_result)
             return HttpResponseRedirect(reverse("update_question", kwargs={"exam_id": exam_id, 'question_id': question_id}))
-        else:
+        else: #如果要跳轉到指定的question_id
             pattern = '([0-9]+)-?' #如果是指定某個問題就用正則拿到question_id
             match = re.search(pattern, next_quetion_id)
-            if(match): #如果有抓到就會有值，如果沒有就會回傳None
+            if(match): #python的RX的規則是:如果有抓到就會有值，如果沒有抓到值就會回傳None
                 ans = match.group(1) #因為我要的question id在match裡面的一個group裡面
                 update_option_next_question_id = Options.objects.filter(id = option_id)
                 update_option_next_question_id.update(next_question_id = ans)
-                return HttpResponseRedirect(reverse("update_question", kwargs={"exam_id": exam_id, 'question_id': question_id}))
+                if('page' in request.GET): #如果前端的formdata裡面有個"?page="
+                    return HttpResponseRedirect(reverse("update_question", kwargs={"exam_id": exam_id, 'question_id': question_id}) + "?page=" + request.GET.get("page"))
+                else: #如果沒有"?page="這個key
+                    return HttpResponseRedirect(reverse("update_question", kwargs={"exam_id": exam_id, 'question_id': question_id}))
+
     option = Options.objects.get(id = option_id)
     exam = Exams.objects.get(id = exam_id)
     questions = exam.questions.all()

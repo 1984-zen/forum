@@ -57,7 +57,7 @@
         <br><br>
 
         <form method="post"
-            action="{% url 'update_next_question_id' exam_id=exam.id question_id=question.id option_id=option.id%}"
+            action="{% url 'update_next_question_id' exam_id=exam.id question_id=question.id option_id=option.id %}?page={{ request.GET.page }}"
             enctype="multipart/form-data">{% csrf_token %}
 
             <table style="width:100%;" border="1">
