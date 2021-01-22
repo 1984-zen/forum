@@ -22,6 +22,7 @@ urlpatterns = [
     path('', include('forum.urls')),
     path('', include('accounts.urls')),
     path('', include('exams.urls')),
+    path('', include('labelme_ncku.urls')),
 
     # path('', include('django.contrib.auth.urls')),
     path('password_reset/', auth_views.PasswordResetView.as_view(), name='password_reset'),
