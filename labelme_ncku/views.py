@@ -13,13 +13,14 @@ import re
 
 def get_labelme_json_file_path(request):
     if(request.method == "POST"):
-        labelme_json_file_path = request.POST.get("labelme_json_file_path") #D:/my_labelme_project/Annotations/example_folder/img2.json
-        pattern = '^(\w:)?\/(\w+)\/(\w+)\/(\w+)' #用regex獲取檔案所在的資料夾路徑
-        match = re.search(pattern, labelme_json_file_path) #D:/my_labelme_project/Annotations/example_folder/
-        if(match): #如果成功regex
-            folder_path = match.group() #group()拿到full match
-            create_label_images_set(folder_path) #製作label data set
-            return JsonResponse({'status': 'get labelme labelme json file path successfully'})
+        get_path = request.POST.get("labelme_json_file_path") #D:/my_labelme_project/Annotations/example_folder/img2.json
+        json_file_path = get_path.replace('/','\\') #D:\my_labelme_project\Annotations\example_folder\img2.json
+        pattern_json_folder_path = '^(\w:)?\\\\(\w+)\\\\(\w+)\\\\(\w+)' #用regex獲取檔案所在的資料夾路徑
+        match_json_folder_path = re.search(pattern_json_folder_path, json_file_path) #D:/my_labelme_project/Annotations/example_folder/
+        if(match_json_folder_path): #如果成功regex
+            json_folder_path = match_json_folder_path.group() #group()拿到full match
+        create_label_images_set(json_folder_path, json_file_path) #製作label data set
+        return JsonResponse({'status': 'get labelme labelme json file path successfully'})
 
 def lblsave_white_mask(filename, lbl): #單張mask存成白底使用這個function
     if osp.splitext(filename)[1] != '.png':
@@ -38,24 +39,18 @@ def lblsave_white_mask(filename, lbl): #單張mask存成白底使用這個functi
             'so please use the npy file.' % filename
         )
 
-def create_label_images_set(folder_path):
-    json_file = folder_path.replace('/','\\') #D:\my_labelme_project\Annotations\example_folder
- 
-    count = os.listdir(json_file) #列出這個資料夾下的所有東西(包含資料夾及檔案) ['file_name.json', 'labelme_json', 'mask_png', 'test0106.json']
-    for i in range(0, len(count)):
-        path = os.path.join(json_file, count[i])
-        if os.path.isfile(path) and path.endswith('.json'): #如果是一個檔案且附檔名是.json
-            data = json.load(open(path))
+def create_label_images_set(json_folder_path, json_file_path):
+        # path = json_file_path
+        if os.path.isfile(json_file_path) and json_file_path.endswith('.json'): #如果檔案存在且是一個檔案且附檔名是.json
+            data = json.load(open(json_file_path))
 
 			##############################
 			#save_diretory
-            out_dir1 = osp.basename(path).replace('.json', '') #baseneme就是獲取檔案名稱，並移除附檔名
-            save_file_name = out_dir1
-            out_dir1 = osp.join(osp.dirname(path), out_dir1)
+            save_file_name = osp.basename(json_file_path).replace('.json', '') #baseneme就是獲取檔案名稱，並移除附檔名
 
-            if not osp.exists(json_file + '\\' + 'label_images_set'):
-                os.mkdir(json_file + '\\' + 'label_images_set')
-            label_images_set = json_file + '\\' + 'label_images_set'
+            if not osp.exists(json_folder_path + '\\' + 'label_images_set'):
+                os.mkdir(json_folder_path + '\\' + 'label_images_set')
+            label_images_set = json_folder_path + '\\' + 'label_images_set'
 
             out_dir2 = label_images_set + '\\' + save_file_name #以檔案名稱為資料夾名稱_json
             if not osp.exists(out_dir2):
@@ -66,7 +61,7 @@ def create_label_images_set(folder_path):
             if data['imageData']:
                 imageData = data['imageData']
             else:
-                imagePath = os.path.join(os.path.dirname(path), data['imagePath'])
+                imagePath = os.path.join(json_file_path, data['imagePath'])
                 with open(imagePath, 'rb') as f:
                     imageData = f.read()
                     imageData = base64.b64encode(imageData).decode('utf-8')
@@ -110,7 +105,7 @@ def create_label_images_set(folder_path):
             #PIL.Image.fromarray(lbl).save(osp.join(out_dir2, 'label.png'))
             utils.lblsave(osp.join(out_dir2, save_file_name+'_labels.png'), lbl) #utils.lblsave(路徑, lbl) 是什麼意思?
             PIL.Image.fromarray(lbl_viz).save(out_dir2+'\\'+save_file_name+
-            '_label_viz.png') #把有字幕的label image存成image_label_viz.png
+            '_labels_viz.png') #把有字幕的label image存成image_label_viz.png
  
             with open(osp.join(out_dir2, 'label_names.txt'), 'w') as f: #從檔案最裡面的路徑out_dir2去寫入到label_names.txt檔案裏面
                 for lbl_name in label_names: 
@@ -124,9 +119,9 @@ def create_label_images_set(folder_path):
 				
 			#save png to another directory
             #另外建立一個mask_png資料夾存mask.png檔案
-            if not osp.exists(json_file + '\\' + 'mask_png'):
-                os.mkdir(json_file + '\\' + 'mask_png')
-            mask_save2png_path = json_file + '\\' + 'mask_png'
+            if not osp.exists(json_folder_path + '\\' + 'mask_png'):
+                os.mkdir(json_folder_path + '\\' + 'mask_png')
+            mask_save2png_path = json_folder_path + '\\' + 'mask_png'
 
             utils.lblsave(osp.join(mask_save2png_path, save_file_name+'_label.png'), lbl)
  
