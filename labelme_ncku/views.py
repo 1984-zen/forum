@@ -10,6 +10,7 @@ from labelme import utils
 import base64
 import numpy as np
 import re
+from django.template.response import TemplateResponse
 
 def get_labelme_json_file_path(request):
     if(request.method == "POST"):
@@ -126,3 +127,6 @@ def create_label_images_set(json_folder_path, json_file_path):
             utils.lblsave(osp.join(mask_save2png_path, save_file_name+'_label.png'), lbl)
  
             print('Saved to: %s' % out_dir2)
+
+def show_label_list(request):
+     return TemplateResponse(request, 'label_list.html', {})
