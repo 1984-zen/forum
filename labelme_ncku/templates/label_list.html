@@ -2,17 +2,47 @@
 <html>
 
 <head>
-  <meta charset="utf-8">
-  {% load static %}
-  <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
-  <title>LabelMe</title>
+    <meta charset="utf-8">
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <title>LabelMe</title>
 </head>
 
 <body>
-  <div class="container">
-    <!-- staart here -->
-   <div>test</div>
-  </div> <!-- end here -->
+    <div class="container">
+        <!-- staart here -->
+        <table style="width:100%;" border="1">
+            <thead>
+                <tr>
+                    <th style="width:1%; padding-left: 10pt; padding-right: 10pt; text-align: center;">SN</th>
+                    <th>Image name</th>
+                    <th>Labels</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for input_img in input_img_list %}
+                <tr>
+                    <td style="width:1%; padding-left: 10pt; padding-right: 10pt; text-align: center;">
+                        {{ forloop.counter }}
+                    </td>
+                    <td>
+                        <a href='{{ LABELME_URL }}?collection=LabelMe&mode=c&folder=example_folder&image={{input_img.img_name}}' target=_blank>
+                            {{input_img.img_name}}
+                        </a>
+                    </td>
+                    <td>
+                    {% for label in input_img.labels.all %}
+                        <img src="{{ MEDIA_URL }}{{ label.mask_path }}" width='50'>
+                        {{ label.label_name }}
+
+                        <br><br>
+                        
+                    {% endfor %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+    </div> <!-- end here -->
 </body>
 
 </html>

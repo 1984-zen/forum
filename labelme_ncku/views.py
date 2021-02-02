@@ -11,6 +11,12 @@ import base64
 import numpy as np
 import re
 from django.template.response import TemplateResponse
+from labelme_ncku.models import Input_imgs
+from django.conf import settings
+
+def show_label_list(request):
+    input_img_list = Input_imgs.objects.all()
+    return TemplateResponse(request, 'label_list.html', {'input_img_list': input_img_list})
 
 def get_labelme_json_file_path(request):
     if(request.method == "POST"):
@@ -128,5 +134,5 @@ def create_label_images_set(json_folder_path, json_file_path):
  
             print('Saved to: %s' % out_dir2)
 
-def show_label_list(request):
-     return TemplateResponse(request, 'label_list.html', {})
+def labelme_url(request):
+    return {'LABELME_URL': settings.LABELME_URL}
