@@ -168,7 +168,7 @@ def get_ajax_answers_options(request):
 def handle_uploaded_media_file(f):
     timestamp = str(datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
     file_relative_path = timestamp + '_' + f.name
-    file_path = os.path.join(os.path.dirname(__file__),'upload_file/media', file_relative_path)
+    file_path = os.path.join(settings.BASE_DIR, 'media',  file_relative_path)
     with open(file_path, 'wb') as destination:
         for chunk in f.chunks():
             destination.write(chunk)
@@ -177,7 +177,7 @@ def handle_uploaded_media_file(f):
 def handle_uploaded_image_file(i):
     timestamp = str(datetime.datetime.now().strftime('%Y%m%d%H%M%S'))
     file_relative_path = timestamp + '_' + i.name
-    file_path = os.path.join(os.path.dirname(__file__),'upload_file/media', file_relative_path)
+    file_path = os.path.join(settings.BASE_DIR, 'media',  file_relative_path)
     with open(file_path, 'wb') as destination:
         for chunk in i.chunks():
             destination.write(chunk)
