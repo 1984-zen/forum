@@ -1,5 +1,6 @@
-/venv
+/venv/
 /forum/upload_file/
 /exams/upload_file/
 /nckuh_project/settings.py
 *.pyc
+/media/
