@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'forum',
     'accounts',
     'exams',
+    'labelme_ncku',
 ]
 
 
@@ -71,6 +72,7 @@ TEMPLATES = [
                 'django.contrib.messages.context_processors.messages',
                 'django.template.context_processors.media',
                 'django.template.context_processors.csrf',
+                'labelme_ncku.views.labelme_url',
             ],
         },
     },
@@ -140,8 +142,9 @@ USE_TZ = False
 # https://docs.djangoproject.com/en/2.2/howto/static-files/
 
 
-MEDIA_URL = '/exams/upload_file/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR + '\\exams\\upload_file', 'media')
+LABELME_URL = ''
+MEDIA_URL = '/media/' #這是給template的環境變數
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media') #這個不加會顯示不出來圖片/影片的路徑
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'static'),
