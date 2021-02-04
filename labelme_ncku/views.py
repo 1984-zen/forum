@@ -9,10 +9,15 @@ import yaml
 from labelme import utils
 import base64
 import numpy as np
+from numpy import save, load
 import re
 from django.template.response import TemplateResponse
 from labelme_ncku.models import Input_imgs, Labels
 from django.conf import settings
+import logging
+import sys
+
+np.set_printoptions(threshold=sys.maxsize) #將print()numpy array全部顯示
 
 def show_label_list(request):
     input_img_list = Input_imgs.objects.all()
@@ -46,6 +51,8 @@ def lblsave_white_mask(filename, lbl): #單張mask存成白底使用這個functi
         )
 
 def create_label_images_set(json_folder_path, json_file_path):
+        logging.basicConfig(level=logging.INFO)
+        logger = logging.getLogger(__name__)
         if os.path.isfile(json_file_path) and json_file_path.endswith('.json'): #如果檔案存在且是一個檔案且附檔名是.json
             data = json.load(open(json_file_path))
 
@@ -92,7 +99,7 @@ def create_label_images_set(json_folder_path, json_file_path):
                     label_name_to_value[label_name] = label_value #{'label_name: 1也就是label_value}
             
             # label_values must be dense
-            label_values, label_names = [], [] #label_values是什麼?
+            label_values, label_names = [], []
             # print("====label_name_to_value.items======", label_name_to_value.items()) #dict_items([('_background_', 0), ('test', 1), ('test2', 2)])
             for ln, lv in sorted(label_name_to_value.items(), key=lambda x: x[1]): #因為label_name_to_value這個dict無法被蝶代所以用items()讓他轉為可跌代，但會變成tuple(laabel_name1, laabel_name2, ..)
                 label_values.append(lv) #lv就是Tuple的index編號: 0, 1, 2, 3, ...
@@ -113,27 +120,39 @@ def create_label_images_set(json_folder_path, json_file_path):
             img_name = osp.basename(input_img_path) #osp.basename是從input_img_path中取到整個img_name檔案名稱
             #開始從資料庫查詢是否有這張img的path紀錄
             has_input_img = Input_imgs.objects.filter(img_name = img_name)
-            #開始將mask_label路徑寫進資料庫
-            if(has_input_img.count()): #如果資料庫裡有這張data['imagePath']照片img_name名稱的話
+            #開始處理label_mask
+            #如果資料庫裡有這張data['imagePath']照片img_name名稱的話，就儲存label_mask檔案並將path存在資料庫
+            if(has_input_img.count()):
                 input_img_id = has_input_img[0].id #取得input_img的id
                 input_img = Input_imgs.objects.get(id = input_img_id)
-                #開始一張一張存_label_mask圖片
+                #開始一張一張存_label_mask
                 for i in range(1, len(label_name_to_value)): #跳過"_background_"從第二個開始
                     mask_from_lbl = (lbl==[i]).astype(np.uint8) #利用label_name_to_value去找出每一個對應的mask
-                    lblsave_white_mask(osp.join(file_folder_path, f'{save_file_folder_name}_label_{label_names[i]}.png'), mask_from_lbl)#產生白色遮罩mask
-                    has_label_record = input_img.labels.filter(input_img_id = input_img_id).filter(label_name = label_names[i]).count()
+                    #開始一張一張把label_mask存成npy格式，存在media資料夾裡面
+                    save(os.path.join(os.path.dirname(os.path.abspath("__file__")), f'media/labelme/{json_folder_name}/label_images_set/{save_file_folder_name}/{save_file_folder_name}_{label_names[i]}.npy'), lbl==[i])
+                    #開始一張一張將label_mask的PNG圖片存在media資料夾裡面
+                    lblsave_white_mask(osp.join(file_folder_path, f'{save_file_folder_name}_label_{label_names[i]}.png'), mask_from_lbl) #產生label_mask圖片
+                    #開始將label_mask的路徑存在DB
+                    has_label_record = input_img.labels.filter(input_img_id = input_img_id).filter(label_name = label_names[i]).count() #先驗證之前DB是否有存果此label_name
 
-                    if(not has_label_record): #如果資料庫沒有這個label的名字的話就開始建立label資料
+                    if(not has_label_record): #如果資料庫沒有這個label_name的話就開始建立label資料
                         mask_path = f'{file_folder_path}/{save_file_folder_name}_label_{label_names[i]}.png'
                         pattern = 'labelme.*'
                         match = re.search(pattern, mask_path)
                         if(match):
                             create_label_mask = Labels(label_name = label_names[i], mask_path = match.group(), user_id = 1, input_img_id = input_img_id)
                             create_label_mask.save()
-            else:
+            else: #如果資料庫沒有img_name的紀錄，就只儲存label_mask檔案到media資料夾
                 logger.warn(
                 '資料庫裏面沒有 [%s] 這張圖片名稱的紀錄' % img_name
                 )
+                #開始一張一張存label_mask檔案
+                for i in range(1, len(label_name_to_value)): #跳過"_background_"從第二個開始
+                    mask_from_lbl = (lbl==[i]).astype(np.uint8) #利用label_name_to_value去找出每一個對應的mask
+                    #開始一張一張把label_mask存成npy格式，存在media資料夾裡面
+                    save(os.path.join(os.path.dirname(os.path.abspath("__file__")), f'media/labelme/{json_folder_name}/label_images_set/{save_file_folder_name}/{save_file_folder_name}_{label_names[i]}.npy'), lbl==[i])
+                    #開始一張一張將label_mask的PNG圖片存在media資料夾裡面
+                    lblsave_white_mask(osp.join(file_folder_path, f'{save_file_folder_name}_label_{label_names[i]}.png'), mask_from_lbl) #產生label_mask圖片
 
             captions = ['{}: {}'.format(lv, ln) #captions翻譯叫做字幕
                 for ln, lv in label_name_to_value.items()]
