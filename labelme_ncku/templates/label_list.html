@@ -10,36 +10,37 @@
 
 <body>
     <div class="container">
-        <!-- staart here -->
+        <!-- start here -->
+        {% regroup labels by input_img as labels_by_input_img_id %}
         <table style="width:100%;" border="1">
             <thead>
                 <tr>
                     <th style="width:1%; padding-left: 10pt; padding-right: 10pt; text-align: center;">SN</th>
-                    <th>Image name</th>
-                    <th>Labels</th>
+                    <th style="text-align: center;">Image name</th>
+                    <th style="text-align: center;">Label name</th>
+                    <th style="text-align: center;">npy file</th>
                 </tr>
             </thead>
             <tbody>
-                {% for input_img in input_img_list %}
+                {% for labels in labels_by_input_img_id %}
+                {% for label in labels.list %}
                 <tr>
-                    <td style="width:1%; padding-left: 10pt; padding-right: 10pt; text-align: center;">
-                        {{ forloop.counter }}
+                    {% if forloop.first %}
+                        {% if forloop.parentloop.first %}
+                        <td rowspan="{{ labels.list|length }}" style="width:1%; padding-left: 10pt; padding-right: 10pt; text-align: center;">{{ forloop.counter }}</td>
+                        {% endif %}
+                        <td style="text-align: center; width:30%; padding-left: 10pt; padding-right: 10pt;" rowspan="{{ labels.list|length }}">
+                            <a href='{{ LABELME_URL }}?collection=LabelMe&mode=c&folder=example_folder&image={{labels.grouper}}' target=_blank>{{ labels.grouper }}</a>
+                        </td>
+                    {% endif %}
+                    <td style="text-align: left; width:60%; padding-left: 10pt; padding-right: 10pt;">
+                        <img src="{{ MEDIA_URL }}{{ label.mask_path }}" width='50'> {{ label.label_name }}
                     </td>
                     <td>
-                        <a href='{{ LABELME_URL }}?collection=LabelMe&mode=c&folder=example_folder&image={{input_img.img_name}}' target=_blank>
-                            {{input_img.img_name}}
-                        </a>
-                    </td>
-                    <td>
-                    {% for label in input_img.labels.all %}
-                        <img src="{{ MEDIA_URL }}{{ label.mask_path }}" width='50'>
-                        {{ label.label_name }}
-
-                        <br><br>
-                        
-                    {% endfor %}
+                        <a href="/media/{{ label.npy_path }}"><span>npy下載</span></a>
                     </td>
                 </tr>
+                {% endfor %}
                 {% endfor %}
             </tbody>
     </div> <!-- end here -->

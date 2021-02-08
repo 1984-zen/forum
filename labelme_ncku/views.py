@@ -17,11 +17,11 @@ from django.conf import settings
 import logging
 import sys
 
-np.set_printoptions(threshold=sys.maxsize) #將print()numpy array全部顯示
+np.set_printoptions(threshold=sys.maxsize, linewidth=sys.maxsize) #將print()numpy array全部顯示
 
 def show_label_list(request):
-    input_img_list = Input_imgs.objects.all()
-    return TemplateResponse(request, 'label_list.html', {'input_img_list': input_img_list})
+    labels = Labels.objects.all()
+    return TemplateResponse(request, 'label_list.html', {'labels': labels})
 
 def get_labelme_json_file_path(request):
     if(request.method == "POST"):
@@ -62,13 +62,10 @@ def create_label_images_set(json_folder_path, json_file_path):
             json_folder_name = json_folder_path.split('/')[-1]
             #存放所有json檔案的資料夾路徑
             jsons_folder_path = f'{settings.BASE_DIR}/media/labelme/{json_folder_name}' #D:\my_projects/media/labelme/example_folder
-            jsons_folder_path = jsons_folder_path.replace('\\', '/') #D:/my_projects/media/labelme/example_folder
             #label_images_set資料夾路徑
             label_images_set_path = f'{settings.BASE_DIR}/media/labelme/{json_folder_name}/label_images_set' #D:\my_projects/media/labelme/example_folder/label_images_set
-            label_images_set_path = label_images_set_path.replace('\\', '/') #D:/my_projects/media/labelme/example_folder/label_images_set
             #label.png存放所在的資料夾路徑
             file_folder_path = f'{settings.BASE_DIR}/media/labelme/{json_folder_name}/label_images_set/{save_file_folder_name}' #D:\my_projects/media/labelme/example_folder/label_images_set/img3
-            file_folder_path = file_folder_path.replace('\\', '/') #D:/my_projects/media/labelme/example_folder/label_images_set/img3
 
             if not osp.exists(jsons_folder_path):
                 os.mkdir(jsons_folder_path)
@@ -134,14 +131,11 @@ def create_label_images_set(json_folder_path, json_file_path):
                     lblsave_white_mask(osp.join(file_folder_path, f'{save_file_folder_name}_label_{label_names[i]}.png'), mask_from_lbl) #產生label_mask圖片
                     #開始將label_mask的路徑存在DB
                     has_label_record = input_img.labels.filter(input_img_id = input_img_id).filter(label_name = label_names[i]).count() #先驗證之前DB是否有存果此label_name
-
                     if(not has_label_record): #如果資料庫沒有這個label_name的話就開始建立label資料
-                        mask_path = f'{file_folder_path}/{save_file_folder_name}_label_{label_names[i]}.png'
-                        pattern = 'labelme.*'
-                        match = re.search(pattern, mask_path)
-                        if(match):
-                            create_label_mask = Labels(label_name = label_names[i], mask_path = match.group(), user_id = 1, input_img_id = input_img_id)
-                            create_label_mask.save()
+                        mask_path = f'labelme/{json_folder_name}/label_images_set/{save_file_folder_name}/{save_file_folder_name}_label_{label_names[i]}.png'
+                        npy_path = f'labelme/{json_folder_name}/label_images_set/{save_file_folder_name}/{save_file_folder_name}_{label_names[i]}.npy'
+                        create_label_mask = Labels(label_name = label_names[i], mask_path = mask_path, user_id = 1, input_img_id = input_img_id, npy_path = npy_path)
+                        create_label_mask.save()
             else: #如果資料庫沒有img_name的紀錄，就只儲存label_mask檔案到media資料夾
                 logger.warn(
                 '資料庫裏面沒有 [%s] 這張圖片名稱的紀錄' % img_name
@@ -176,3 +170,10 @@ def create_label_images_set(json_folder_path, json_file_path):
 
 def labelme_url(request):
     return {'LABELME_URL': settings.LABELME_URL}
+
+def download(request, npy_relative_path):
+    file = open(os.path.join(os.path.dirname(__file__), npy_relative_path),'rb')
+    response = FileResponse(file)
+    response['Content-Type'] = 'application/octet-stream'
+    response['Content-Disposition'] = f'attachment;filename="{npy_relative_path}"'
+    return response
