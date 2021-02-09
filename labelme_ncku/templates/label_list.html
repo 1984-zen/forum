@@ -11,6 +11,27 @@
 <body>
     <div class="container">
         <!-- start here -->
+        {% if messages %}
+        <div class="alert alert-warning" role="alert" style="text-align: center;">
+          {% for message in messages %}
+          {{ message }}
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <ol class="breadcrumb my-4">
+            <li class="breadcrumb-item">LabelMe</li>
+        </ol>
+
+        {% if not user_name %}
+        <span>please <a href="{% url 'login' %}">login</a></span>
+        {% else %}
+        <span><a href="{% url 'logout' %}">log out</a></span>
+        {% endif %}
+        <h2>Hi! Wellcome {{ user_name|default:'Guest' }}</h2>
+    
+        <br>
+    
         {% regroup labels by input_img as labels_by_input_img_id %}
         <div>
             <li style="float: right;">下載全部的npy檔案(<a href="{{ npz_file | default:'' }}">.npz下載</a>)</li>
@@ -33,7 +54,7 @@
                         <td rowspan="{{ labels.list|length }}" style="width:1%; padding-left: 10pt; padding-right: 10pt; text-align: center;">{{ forloop.counter }}</td>
                         {% endif %}
                         <td style="text-align: center; width:30%; padding-left: 10pt; padding-right: 10pt;" rowspan="{{ labels.list|length }}">
-                            <a href='{{ LABELME_URL }}?collection=LabelMe&mode=c&folder=example_folder&image={{labels.grouper}}' target=_blank>{{ labels.grouper }}</a>
+                            <a href='{{ LABELME_URL }}?collection=LabelMe&mode=c&folder=example_folder&image={{ labels.grouper }}&username={{ user_name }}' target=_blank>{{ labels.grouper }}</a>
                         </td>
                     {% endif %}
                     <td style="text-align: left; width:60%; padding-left: 10pt; padding-right: 10pt;">

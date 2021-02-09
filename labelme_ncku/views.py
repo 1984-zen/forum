@@ -13,6 +13,7 @@ from numpy import save, load, savez
 import re
 from django.template.response import TemplateResponse
 from labelme_ncku.models import Input_imgs, Labels
+from accounts.models import Users
 from django.conf import settings
 import logging
 import sys
@@ -29,12 +30,13 @@ def show_label_list(request):
 
 def get_labelme_json_file_path(request):
     if(request.method == "POST"):
+        username = request.POST.get("username")
         json_file_path = request.POST.get("labelme_json_file_path") #D:/my_labelme_project/Annotations/example_folder/img2.json
         pattern = '^(\w:)?\/(\w+)\/(\w+)\/(\w+)' #用regex獲取檔案所在的資料夾路徑
         match = re.search(pattern, json_file_path)
         if(match): #如果成功regex
             json_folder_path = match.group() #group()會拿到full match，D:/my_labelme_project/Annotations/example_folder
-        create_label_images_set(json_folder_path, json_file_path) #製作label data set
+        create_label_images_set(json_folder_path, json_file_path, username) #製作label data set
         return JsonResponse({'status': 'get labelme labelme json file path successfully'})
 
 def lblsave_white_mask(filename, lbl): #單張mask存成白底使用這個function
@@ -54,7 +56,8 @@ def lblsave_white_mask(filename, lbl): #單張mask存成白底使用這個functi
             'so please use the npy file.' % filename
         )
 
-def create_label_images_set(json_folder_path, json_file_path):
+def create_label_images_set(json_folder_path, json_file_path, username):
+        user_id = Users.objects.get(username = username).id
         logging.basicConfig(level=logging.INFO)
         logger = logging.getLogger(__name__)
         if os.path.isfile(json_file_path) and json_file_path.endswith('.json'): #如果檔案存在且是一個檔案且附檔名是.json
@@ -132,7 +135,7 @@ def create_label_images_set(json_folder_path, json_file_path):
                     #開始一張一張把label_mask存成npy格式，存在media資料夾裡面
                     save(os.path.join(os.path.dirname(os.path.abspath("__file__")), f'media/labelme/{json_folder_name}/label_images_set/{save_file_folder_name}/{save_file_folder_name}_{label_names[i]}.npy'), label_mask)
                     #開始把這張照片的所有label_mask存在media資料夾中既有的npz檔案裡面
-                    npz_file = os.path.join(os.path.dirname(os.path.abspath("__file__")), f'media/labelme/example_folder/example_folder.npz')
+                    npz_file = os.path.join(os.path.dirname(os.path.abspath("__file__")), f'media/labelme/{json_folder_name}/{json_folder_name}.npz')
                     # 如果沒有npz檔案
                     if not os.path.isfile(npz_file):
                         data = dict() #因為npz是dic格式
@@ -151,7 +154,7 @@ def create_label_images_set(json_folder_path, json_file_path):
                     if(not has_label_record):
                         mask_path = f'labelme/{json_folder_name}/label_images_set/{save_file_folder_name}/{save_file_folder_name}_label_{label_names[i]}.png'
                         npy_path = f'labelme/{json_folder_name}/label_images_set/{save_file_folder_name}/{save_file_folder_name}_{label_names[i]}.npy'
-                        create_label_mask = Labels(label_name = label_names[i], mask_path = mask_path, user_id = 1, input_img_id = input_img_id, npy_path = npy_path)
+                        create_label_mask = Labels(label_name = label_names[i], mask_path = mask_path, user_id = user_id, input_img_id = input_img_id, npy_path = npy_path)
                         create_label_mask.save()
             #如果資料庫沒有img_name的紀錄，就只儲存label_mask檔案到media資料夾
             else:
@@ -164,7 +167,7 @@ def create_label_images_set(json_folder_path, json_file_path):
                     #開始一張一張把label_mask存成npy格式，存在media資料夾裡面
                     save(os.path.join(os.path.dirname(os.path.abspath("__file__")), f'media/labelme/{json_folder_name}/label_images_set/{save_file_folder_name}/{save_file_folder_name}_{label_names[i]}.npy'), lbl==[i])
                     #開始把這張照片的所有label_mask存在media資料夾中既有的npz檔案裡面
-                    npz_file = os.path.join(os.path.dirname(os.path.abspath("__file__")), f'media/labelme/example_folder/example_folder.npz')
+                    npz_file = os.path.join(os.path.dirname(os.path.abspath("__file__")), f'media/labelme/{json_folder_name}/{json_folder_name}.npz')
                     # 如果沒有npz檔案
                     if not os.path.isfile(npz_file):
                         data = dict() #因為npz是dic格式
