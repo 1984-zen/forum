@@ -132,8 +132,10 @@ def create_label_images_set(json_folder_path, json_file_path, username):
                 #開始一張一張存_label_mask
                 for i in range(1, len(label_name_to_value)): #跳過"_background_"從第二個開始
                     label_mask = (lbl==[i]).astype(np.uint8) #利用label_name_to_value去找出每一個對應的mask
-                    #開始一張一張把label_mask存成npy格式，存在media資料夾裡面
+                    #開始將一個一個label_mask的npy檔案，存在 例如:media/labelme/example_folder/label_images_set/img2/.npy
                     save(os.path.join(os.path.dirname(os.path.abspath("__file__")), f'media/labelme/{json_folder_name}/label_images_set/{save_file_folder_name}/{save_file_folder_name}_{label_names[i]}.npy'), label_mask)
+                    #開始將一個一個label_mask的npy檔案，存在 例如:media/labelme/example_folder/.npy
+                    save(os.path.join(os.path.dirname(os.path.abspath("__file__")), f'media/labelme/{json_folder_name}/{save_file_folder_name}_{label_names[i]}.npy'), label_mask)
                     #開始把這張照片的所有label_mask存在media資料夾中既有的npz檔案裡面
                     npz_file = os.path.join(os.path.dirname(os.path.abspath("__file__")), f'media/labelme/{json_folder_name}/{json_folder_name}.npz')
                     # 如果沒有npz檔案
