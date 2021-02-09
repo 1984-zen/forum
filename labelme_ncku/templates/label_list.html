@@ -12,6 +12,9 @@
     <div class="container">
         <!-- start here -->
         {% regroup labels by input_img as labels_by_input_img_id %}
+        <div>
+            <li style="float: right;">下載全部的npy檔案(<a href="{{ npz_file | default:'' }}">.npz下載</a>)</li>
+        </div>
         <table style="width:100%;" border="1">
             <thead>
                 <tr>
