@@ -61,6 +61,7 @@ def create_label_images_set(json_folder_path, json_file_path, username):
         logging.basicConfig(level=logging.INFO)
         logger = logging.getLogger(__name__)
         if os.path.isfile(json_file_path) and json_file_path.endswith('.json'): #如果檔案存在且是一個檔案且附檔名是.json
+            #讀取labelme的json檔
             data = json.load(open(json_file_path))
 
 			##############################
@@ -69,6 +70,8 @@ def create_label_images_set(json_folder_path, json_file_path, username):
             json_folder_name = json_folder_path.split('/')[-1]
             #存放所有json檔案的資料夾路徑
             jsons_folder_path = f'{settings.BASE_DIR}/media/labelme/{json_folder_name}' #D:\my_projects/media/labelme/example_folder
+            #通過labelme處理訓練原圖後生成的json檔案
+            json_folder_path = f'{settings.BASE_DIR}/media/labelme/{json_folder_name}/jsons' #D:\my_projects/media/labelme/example_folder/jsons
             #label_images_set資料夾路徑
             label_images_set_path = f'{settings.BASE_DIR}/media/labelme/{json_folder_name}/label_images_set' #D:\my_projects/media/labelme/example_folder/label_images_set
             #label.png存放所在的資料夾路徑
@@ -77,11 +80,21 @@ def create_label_images_set(json_folder_path, json_file_path, username):
             if not osp.exists(jsons_folder_path):
                 os.mkdir(jsons_folder_path)
 
+            if not osp.exists(json_folder_path):
+                os.mkdir(json_folder_path)
+
             if not osp.exists(label_images_set_path):
                 os.mkdir(label_images_set_path)
 
             if not osp.exists(file_folder_path):
                 os.mkdir(file_folder_path)
+
+			#########################
+
+            #把上面的json data儲存為json檔案存在 例如:media/labelme/example_folder/jsons/.json
+            with open(f'{json_folder_path}/{osp.basename(json_file_path)}', 'w') as fp: #osp.basename(json_file_path)=檔案名稱.json
+                json_object = json.dumps(data, indent = 4) #indent是拿來美化用的，data是上面讀取json檔案的資料
+                fp.write(json_object)
 
 			#########################
 
