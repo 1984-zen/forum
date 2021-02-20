@@ -17,11 +17,15 @@ from accounts.models import Users
 from django.conf import settings
 import logging
 import sys
+from django.db.models import Count, Max
 
 np.set_printoptions(threshold=sys.maxsize, linewidth=sys.maxsize) #將print()numpy array全部顯示
 
 def show_label_list(request):
-    labels = Labels.objects.all()
+    # 用'label_name', 'input_img_id'做分組並列出有大於等於1的結果，然後再取這些分組結果每組的最大id並攤平化 ids = <QuerySet [59, 60, 61, 63]>
+    ids = Labels.objects.values('label_name', 'input_img_id').annotate(Count('label_name')).filter(label_name__count__gte=1).annotate(Max('id')).values_list('id__max', flat = True)
+    # labels會印出object結構的QuerySet
+    labels = Labels.objects.filter(id__in = ids)
     npz_file = os.path.join(os.path.dirname(os.path.abspath("__file__")), f'media/labelme/example_folder/example_folder.npz')
     if os.path.isfile(npz_file):
         npz_file = f'/media/labelme/example_folder/example_folder.npz'
