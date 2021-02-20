@@ -163,14 +163,19 @@ def create_label_images_set(json_folder_path, json_file_path, username):
                         savez(os.path.join(os.path.dirname(os.path.abspath("__file__")), f'media/labelme/{json_folder_name}/{json_folder_name}.npz'), **data) #將data存成npz，並將dic key當作npz的key name
                     #開始一張一張將label_mask的PNG圖片存在media資料夾裡面
                     lblsave_white_mask(osp.join(file_folder_path, f'{save_file_folder_name}_label_{label_names[i]}.png'), label_mask) #產生label_mask圖片
-                    #開始將label_mask的PNG及npy檔案path存在DB
-                    has_label_record = input_img.labels.filter(input_img_id = input_img_id).filter(label_name = label_names[i]).count() #先驗證DB是否已有此label_name
-                    #如果資料庫沒有這個label_name的話就開始存path
-                    if(not has_label_record):
-                        mask_path = f'labelme/{json_folder_name}/label_images_set/{save_file_folder_name}/{save_file_folder_name}_label_{label_names[i]}.png'
-                        npy_path = f'labelme/{json_folder_name}/label_images_set/{save_file_folder_name}/{save_file_folder_name}_{label_names[i]}.npy'
-                        create_label_mask = Labels(label_name = label_names[i], mask_path = mask_path, user_id = user_id, input_img_id = input_img_id, npy_path = npy_path)
-                        create_label_mask.save()
+                #開始將path存在DB
+                data = json.load(open(json_file_path))
+                for shape in data['shapes']: #拿到json檔案裡面全部的labels資訊
+                    label_id = shape['label_id']
+                    label_name = shape['label']
+                    #檢查資料庫是否有重複的label_id(這張原圖中)
+                    has_label_id_record = input_img.labels.filter(input_img_id = input_img_id).filter(label_id = label_id).count()
+                    #如果資料庫沒有這個label_id的話就開始存path
+                    if(not has_label_id_record):
+                        mask_path = f'labelme/{json_folder_name}/label_images_set/{save_file_folder_name}/{save_file_folder_name}_label_{label_name}.png'
+                        npy_path = f'labelme/{json_folder_name}/label_images_set/{save_file_folder_name}/{save_file_folder_name}_{label_name}.npy'
+                        create_label = Labels(label_name = label_name, mask_path = mask_path, user_id = user_id, input_img_id = input_img_id, npy_path = npy_path, label_id = label_id)
+                        create_label.save()
             #如果資料庫沒有img_name的紀錄，就只儲存label_mask檔案到media資料夾
             else:
                 logger.warn(
