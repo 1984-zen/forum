@@ -174,9 +174,9 @@ def create_label_images_set(json_folder_path, json_file_path, username):
                     has_label_id_record = input_img.labels.filter(input_img_id = input_img_id).filter(label_id = label_id).count()
                     #如果資料庫沒有這個label_id的話就開始存path
                     if(not has_label_id_record):
-                        mask_path = f'labelme/{json_folder_name}/label_images_set/{save_file_folder_name}/{save_file_folder_name}_{label_name}.png'
+                        label_pic_path = f'labelme/{json_folder_name}/label_images_set/{save_file_folder_name}/{save_file_folder_name}_{label_name}.png'
                         npy_path = f'labelme/{json_folder_name}/npys/{save_file_folder_name}_{label_name}.npy'
-                        create_label = Labels(label_name = label_name, mask_path = mask_path, user_id = user_id, input_img_id = input_img_id, npy_path = npy_path, label_id = label_id)
+                        create_label = Labels(label_name = label_name, label_pic_path = label_pic_path, user_id = user_id, input_img_id = input_img_id, npy_path = npy_path, label_id = label_id)
                         create_label.save()
             #如果資料庫沒有img_name的紀錄，就只儲存label_mask檔案到media資料夾
             else:

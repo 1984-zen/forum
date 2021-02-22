@@ -19,7 +19,7 @@ class Input_imgs(models.Model):
 class Labels(models.Model):
     label_name = models.CharField(max_length=255)
     label_id = models.CharField(max_length=255, null=True)
-    mask_path = models.CharField(max_length=255)
+    label_pic_path = models.CharField(max_length=255)
     npy_path = models.CharField(max_length=255, null=True)
     input_img = models.ForeignKey(Input_imgs, on_delete=models.CASCADE, related_name= 'labels')
     user = models.ForeignKey('accounts.Users', on_delete=models.CASCADE, related_name='labels')
