@@ -149,11 +149,9 @@ def create_label_images_set(json_folder_path, json_file_path, username):
                 #開始一張一張存_label_mask
                 for i in range(1, len(label_name_to_value)): #跳過"_background_"從第二個開始
                     label_mask = (lbl==[i]).astype(np.uint8) #利用label_name_to_value去找出每一個對應的mask
-                    #開始將一個一個label_mask的npy檔案，存在 例如:media/labelme/example_folder/label_images_set/img2/.npy
-                    save(os.path.join(os.path.dirname(os.path.abspath("__file__")), f'media/labelme/{json_folder_name}/label_images_set/{save_file_folder_name}/{save_file_folder_name}_{label_names[i]}.npy'), label_mask)
-                    #開始將一個一個label_mask的npy檔案，存在 例如:media/labelme/example_folder/.npy
-                    save(os.path.join(os.path.dirname(os.path.abspath("__file__")), f'media/labelme/{json_folder_name}/{save_file_folder_name}_{label_names[i]}.npy'), label_mask)
-                    #開始把這張照片的所有label_mask存在media資料夾中既有的npz檔案裡面
+                    #開始將一個一個label_mask的npy檔案，存在 例如:media/labelme/example_folder/npys/.npy
+                    save(os.path.join(os.path.dirname(os.path.abspath("__file__")), f'media/labelme/{json_folder_name}/npys/{save_file_folder_name}_{label_names[i]}.npy'), label_mask)
+                    #開始把這張所有label_mask存在npz檔案裡面 例如:media/labelme/example_folder/.npz
                     npz_file = os.path.join(os.path.dirname(os.path.abspath("__file__")), f'media/labelme/{json_folder_name}/{json_folder_name}.npz')
                     # 如果沒有npz檔案
                     if not os.path.isfile(npz_file):
@@ -166,7 +164,7 @@ def create_label_images_set(json_folder_path, json_file_path, username):
                         data[f'{save_file_folder_name}_{label_names[i]}'] = label_mask #修改dic加入新的label_mask
                         savez(os.path.join(os.path.dirname(os.path.abspath("__file__")), f'media/labelme/{json_folder_name}/{json_folder_name}.npz'), **data) #將data存成npz，並將dic key當作npz的key name
                     #開始一張一張將label_mask的PNG圖片存在media資料夾裡面
-                    lblsave_white_mask(osp.join(file_folder_path, f'{save_file_folder_name}_label_{label_names[i]}.png'), label_mask) #產生label_mask圖片
+                    lblsave_white_mask(osp.join(file_folder_path, f'{save_file_folder_name}_{label_names[i]}.png'), label_mask) #產生label_mask圖片
                 #開始將path存在DB
                 data = json.load(open(json_file_path))
                 for shape in data['shapes']: #拿到json檔案裡面全部的labels資訊
@@ -176,8 +174,8 @@ def create_label_images_set(json_folder_path, json_file_path, username):
                     has_label_id_record = input_img.labels.filter(input_img_id = input_img_id).filter(label_id = label_id).count()
                     #如果資料庫沒有這個label_id的話就開始存path
                     if(not has_label_id_record):
-                        mask_path = f'labelme/{json_folder_name}/label_images_set/{save_file_folder_name}/{save_file_folder_name}_label_{label_name}.png'
-                        npy_path = f'labelme/{json_folder_name}/label_images_set/{save_file_folder_name}/{save_file_folder_name}_{label_name}.npy'
+                        mask_path = f'labelme/{json_folder_name}/label_images_set/{save_file_folder_name}/{save_file_folder_name}_{label_name}.png'
+                        npy_path = f'labelme/{json_folder_name}/npys/{save_file_folder_name}_{label_name}.npy'
                         create_label = Labels(label_name = label_name, mask_path = mask_path, user_id = user_id, input_img_id = input_img_id, npy_path = npy_path, label_id = label_id)
                         create_label.save()
             #如果資料庫沒有img_name的紀錄，就只儲存label_mask檔案到media資料夾
@@ -189,7 +187,7 @@ def create_label_images_set(json_folder_path, json_file_path, username):
                 for i in range(1, len(label_name_to_value)): #跳過"_background_"從第二個開始
                     label_mask = (lbl==[i]).astype(np.uint8) #利用label_name_to_value去找出每一個對應的mask
                     #開始一張一張把label_mask存成npy格式，存在media資料夾裡面
-                    save(os.path.join(os.path.dirname(os.path.abspath("__file__")), f'media/labelme/{json_folder_name}/label_images_set/{save_file_folder_name}/{save_file_folder_name}_{label_names[i]}.npy'), lbl==[i])
+                    save(os.path.join(os.path.dirname(os.path.abspath("__file__")), f'media/labelme/{json_folder_name}/npys/{save_file_folder_name}_{label_names[i]}.npy'), lbl==[i])
                     #開始把這張照片的所有label_mask存在media資料夾中既有的npz檔案裡面
                     npz_file = os.path.join(os.path.dirname(os.path.abspath("__file__")), f'media/labelme/{json_folder_name}/{json_folder_name}.npz')
                     # 如果沒有npz檔案
@@ -203,7 +201,7 @@ def create_label_images_set(json_folder_path, json_file_path, username):
                         data[f'{save_file_folder_name}_{label_names[i]}'] = label_mask #修改dic加入新的label_mask
                         savez(os.path.join(os.path.dirname(os.path.abspath("__file__")), f'media/labelme/{json_folder_name}/{json_folder_name}.npz'), **data) #將data存成npz，並將dic key當作npz的key name
                     #開始一張一張將label_mask的PNG圖片存在media資料夾裡面
-                    lblsave_white_mask(osp.join(file_folder_path, f'{save_file_folder_name}_label_{label_names[i]}.png'), label_mask) #產生label_mask圖片
+                    lblsave_white_mask(osp.join(file_folder_path, f'{save_file_folder_name}_{label_names[i]}.png'), label_mask) #產生label_mask圖片
 
             captions = ['{}: {}'.format(lv, ln) #captions翻譯叫做字幕
                 for ln, lv in label_name_to_value.items()]
