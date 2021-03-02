@@ -5,7 +5,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 
 urlpatterns = [
-       path('labelme/json_file_path', views.get_labelme_json_file_path, name = 'get_labelme_json_file_path'),
-       path('labelme', views.show_label_list, name = 'show_label_list')
+       path('labelme', views.show_label_list, name = 'show_label_list'),
+       path('labelme/create_label', views.create_label, name = 'create_label'),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
