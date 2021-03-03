@@ -7,5 +7,6 @@ from django.conf.urls.static import static
 urlpatterns = [
        path('labelme', views.show_label_list, name = 'show_label_list'),
        path('labelme/create_label', views.create_label, name = 'create_label'),
+       path('labelme/delete_label', views.delete_label, name = 'delete_label'),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

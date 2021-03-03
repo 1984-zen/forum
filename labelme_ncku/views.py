@@ -248,7 +248,7 @@ def create_label(request):
             #第一步先把資料庫沒有的label_id加到label_name_to_value名單
             label_name_to_value = create_label_name_to_value(data, dictionary, 1, 0, label_ids_from_db)
 
-            #第二步把label_name_to_value名單中的labels及points(注意:label_name可能會重複，但shape內容不同)加到new_shapes
+            #第二步把label_name_to_value名單中的labels及points(注意:label_name可能會重複，但shape內容不同)加到shapes
             shapes = get_shapes(data, label_name_to_value)
 
             #開始處理numpy_array，lbl包含了每個label的numpy_array
@@ -292,3 +292,115 @@ def create_label(request):
 
             print('Saved training.txt to: %s' % training_folder_path)
             return JsonResponse({'status': 'create label successfully'})
+
+def delete_label(request):
+    if request.method == "POST":
+        #該label的原圖檔案名稱
+        input_img_name = request.POST.get("input_img_name") #img1.jpg
+        deleted_label_id = request.POST.get("deleted_label_id") #要刪除label的id
+        deleted_label_name = request.POST.get("deleted_label_name") #要刪除label的name
+        training_folder_name = request.POST.get("training_folder_name") #example_folder
+
+        #開始查詢是否有這個label_id
+        input_img_id = Input_imgs.objects.get(img_name = input_img_name).id
+        input_img_name = input_img_name.replace('.jpg', '') #去除副檔名
+
+        #如果資料庫裡有這張input_img名稱的話，就刪除檔案及資料庫的該path
+        label = Labels.objects.filter(input_img_id = input_img_id).filter(label_id = deleted_label_id)
+        has_label_id = label.values("label_id").annotate(Count("label_id")).filter(label_id__count__gt = 0)
+
+        #如果有這個label_id
+        if has_label_id:
+            #開始檢查是否有重複的label_name
+            is_duplicate_label_name = Labels.objects.filter(input_img_id__in = label.values("input_img_id")).filter(label_name = deleted_label_name).values("label_name").annotate(Count("label_name")).filter(label_name__count__gt = 1)
+
+            #如果沒有重複label_name就直接刪除npy檔, 從npz裡面移除, 刪除label_pic檔案, 刪除DB裡的資料
+            if not is_duplicate_label_name:
+
+                npy_path = label.values_list('npy_path', flat = True)[0]
+                label_pic_path = label.values_list('label_pic_path', flat = True)[0]
+
+                #刪除npy檔案
+                if osp.isfile(f'{settings.BASE_DIR}/media/{npy_path}'):
+                    #移除npy檔案 例如:labelme/example_folder/npys/.npy
+                    os.remove(f'{settings.BASE_DIR}/media/{npy_path}')
+
+                #刪除label_pic檔案
+                if osp.isfile(f'{settings.BASE_DIR}/media/{label_pic_path}'):
+                    os.remove(f'{settings.BASE_DIR}/media/{label_pic_path}')
+
+                #從npz移除該label_numpy
+                npz_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}/{training_folder_name}.npz'
+                if osp.isfile(npz_path):
+                    npz_data = dict(np.load(npz_path))
+                    del npz_data[f'{input_img_name}_{deleted_label_name}']
+
+                #刪除DB的資料
+                label.delete()
+
+            #如果有重複label_name就更新npy檔案，更新label_pic，更新npz，因為同一個名子都會被合併成一個檔案
+            elif is_duplicate_label_name:
+
+                #json_file_path是 D:/my_labelme_project/Annotations/example_folder/img2.json
+                json_file_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}/jsons/{input_img_name}.json'
+
+                data = json.load(open(json_file_path))
+
+                #更新json檔案，把目前要刪除的label_id的shape從data給移除掉
+                for i, shape in enumerate(data['shapes']): #拿到json檔案裡面全部的labels資訊
+                    label_id = shape['label_id']
+                    label_name = shape['label']
+                    #找到這個shape的index位置然移除該shape
+                    if label_id in deleted_label_id:
+                        #移除該shape
+                        del data['shapes'][i]
+                        break
+
+                jsons_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}/jsons' #D:\my_projects/media/labelme/example_folder/jsons
+
+                #更新json檔案
+                save_json_data_to_file(jsons_folder_path, input_img_name, data)
+
+                training_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}' #D:\my_projects/media/labelme/example_folder
+
+                #載入dictionary
+                dictionary = load_dictionary(training_folder_path)
+
+                #把json檔內有叫deleted_label_name的加到label_name_to_value名單
+                label_name_to_value = create_label_name_to_value(data, dictionary, 0, 1, [deleted_label_name])
+
+                #把label_name_to_value名單中的labels及points(注意:label_name可能會重複，但shape內容不同)加到shapes
+                shapes = get_shapes(data, label_name_to_value)
+
+                #從json檔讀取base64圖
+                img = read_img(data)
+
+                #開始處理numpy_array，lbl包含了每個label的numpy_array
+                #img.shape 的.shape會是一組tuple，像是(x維度，y個元素)
+                lbl = utils.shapes_to_label(img.shape, shapes, label_name_to_value) #shape_to_label(img_shape, shape, label_name_to_value, type='class')
+
+                label_collection_folder_path = f'{training_folder_path}/label_images_set/{input_img_name}'
+
+                label_values, label_names = [], []
+
+                for ln, lv in label_name_to_value.items():
+                    label_values.append(lv) #lv就是Tuple的index編號: 0, 1, 2, 3, ...
+                    label_names.append(ln) #ln就是label name
+
+                #開始一張一張存檔案(npy, npz, label_pic)及寫入資料庫
+                save_files(label_name_to_value, lbl, label_values, label_names, training_folder_name, input_img_name, label_collection_folder_path)
+
+                #如果json檔沒有任何一個叫deleted_label_name，但資料庫有的話，就全部刪除資料庫裡有叫deleted_label_name的資料
+                if not label_name_to_value:
+                    labels = Labels.objects.filter(input_img_id = input_img_id).filter(label_name = deleted_label_name)
+                    #刪除DB的資料
+                    labels.delete()
+                else:
+                    #刪除DB的資料
+                    label.delete()
+
+        #紀錄log
+        logger.info(
+        '[Delete] LabelMe input_img_name: [%s] has been deleted label_name [%s] which label_id is [%s]' % (input_img_name, deleted_label_name, deleted_label_id)
+        )
+        return JsonResponse({'data': 'successfully'})
