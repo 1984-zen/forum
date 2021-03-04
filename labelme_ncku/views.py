@@ -44,20 +44,22 @@ def save_json_data_to_file(jsons_folder_path, input_img_name, data):
         json_object = json.dumps(data, indent = 4) #indent是拿來美化用的，data是上面讀取json檔案的資料
         filepath.write(json_object)
 
-def update_dictionary(data, dictionary, training_folder_path):
+def update_dictionary(data, training_folder_path, dictionary_path):
+    dictionary = json.load(open(dictionary_path))
     #檢查並擴充dictionary
     for shape in data['shapes']: #拿到json檔案裡面全部的labels資訊
         label_id = shape['label_id']
         label_name = shape['label']
         #檢查dictionary是否需要擴充
-        if label_name not in dictionary:
-            dictionary_id = len(dictionary)
+        if label_name not in dictionary.keys():
+            dictionary_id = len(dictionary) + 1
             #擴充dictionary
             dictionary[label_name] = dictionary_id #dictionary {'new_label_name: total + 1}
             #就更新到dictionary.json
             with open(f'{training_folder_path}/dictionary.json', 'w') as filepath:
                 json_object = json.dumps(dictionary, indent = 4) #indent是拿來美化用的，data是上面讀取json檔案的資料
                 filepath.write(json_object)
+    return dictionary
 
 def create_dictionary(training_folder_path):
     #從資料庫撈出label_name及Rank排名的QuerySet[{'label_name': 'ddd', 'rank': 1},...]，Rank會當作是dictionary_id
@@ -73,11 +75,14 @@ def create_dictionary(training_folder_path):
         json_object = json.dumps(dictionary, indent = 4) #indent是拿來美化用的，data是上面讀取json檔案的資料
         filepath.write(json_object)
 
-def load_dictionary(training_folder_path):
+def load_dictionary(training_folder_path, data):
     dictionary_path = f'{training_folder_path}/dictionary.json'
+    #先檢查dictionary檔案是否存在
     if not osp.isfile(dictionary_path):
+        #建立dictionary.json
         create_dictionary(training_folder_path)
-    dictionary = json.load(open(dictionary_path))
+    #最新的dictionary
+    dictionary = update_dictionary(data, training_folder_path, dictionary_path)
     return dictionary
 
 def create_label_name_to_value(data, dictionary, create_status, delete_status, lists):
@@ -103,7 +108,7 @@ def get_shapes(data, label_name_to_value):
     shapes = []
     for shape in data['shapes']:
         label_name = shape['label']
-        if label_name in label_name_to_value:
+        if label_name in label_name_to_value.keys():
             shapes.append(shape)
     return shapes
 
@@ -242,11 +247,8 @@ def create_label(request):
                 )
                 return JsonResponse({'status': f'create label failed. Because this input_img: [{img_name}] does not exsit in DB'})                 
 
-            #載入dictionary
-            dictionary = load_dictionary(training_folder_path)
-
-            #更新dictionary
-            update_dictionary(data, dictionary, training_folder_path)
+            #載入並更新dictionary
+            dictionary = load_dictionary(training_folder_path, data)
 
             label_ids_from_db = Labels.objects.filter(input_img_id = input_img_id).values_list("label_id", flat = True)
 
@@ -381,7 +383,7 @@ def delete_label(request):
                 training_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}' #D:\my_projects/media/labelme/example_folder
 
                 #載入dictionary
-                dictionary = load_dictionary(training_folder_path)
+                dictionary = load_dictionary(training_folder_path, data)
 
                 #把json檔內有叫deleted_label_name的加到label_name_to_value名單
                 label_name_to_value = create_label_name_to_value(data, dictionary, 0, 1, [deleted_label_name])
