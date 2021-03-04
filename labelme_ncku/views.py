@@ -224,18 +224,23 @@ def create_label(request):
             #儲存成file.json在 例如:media/labelme/example_folder/jsons/.json
             save_json_data_to_file(jsons_folder_path, input_img_name, data)
 
+            #從json檔讀取base64圖
             img = read_img(data)
 
-            #查詢input_img_id
-            if data['imagePath']:
-                input_img_path = data['imagePath'] #此path為Labelme專案中/Images/example_folder/.jpg
-                img_name = osp.basename(input_img_path) #img_name.jpg
-                #查詢是否有這筆input_img_name
-                has_input_img = Input_imgs.objects.filter(img_name = img_name)
-                #如果有紀錄的話
-                if has_input_img.count():
-                    #原圖input_img的id
-                    input_img_id = has_input_img.values_list("id", flat = True)[0]
+            input_img_path = data['imagePath'] #此path為Labelme專案中/Images/example_folder/.jpg
+
+            img_name = osp.basename(input_img_path) #img_name.jpg
+
+            #查詢資料庫是否有這張input_img的紀錄
+            try:
+                input_img_id = Input_imgs.objects.get(img_name = img_name).id
+            #沒有這張input_img的紀錄就直接結束
+            except Input_imgs.DoesNotExist:
+                #紀錄log
+                logger.warn(
+                '[Create] Create label failed. Because this input_img: [%s] does not exsit in DB' % (img_name)
+                )
+                return JsonResponse({'status': f'create label failed. Because this input_img: [{img_name}] does not exsit in DB'})                 
 
             #載入dictionary
             dictionary = load_dictionary(training_folder_path)
@@ -279,7 +284,7 @@ def create_label(request):
                     create_label.save()
                     #紀錄log
                     logger.info(
-                    '[Create] LabelMe input_img_name: [%s] has been create label_name [%s] which label_id is [%s]' % (input_img_name, label_name, label_id)
+                    '[Create] create label successfully. Input_img_name: [%s] has been create label_name [%s] which label_id is [%s]' % (input_img_name, label_name, label_id)
                     )
 
             label_paths = Labels.objects.values_list("npy_path", "dictionary_id")
@@ -291,7 +296,9 @@ def create_label(request):
                     filepath.write(f'{label[0].replace("labelme/example_folder/", "")} {label[1]}' + '\n')
 
             print('Saved training.txt to: %s' % training_folder_path)
-            return JsonResponse({'status': 'create label successfully'})
+            return JsonResponse({'status': f'create label successfully. input_img_name: [{input_img_name}] has been create Label_name: [{label_names}]'})
+
+    return JsonResponse({})
 
 def delete_label(request):
     if request.method == "POST":
@@ -301,8 +308,18 @@ def delete_label(request):
         deleted_label_name = request.POST.get("deleted_label_name") #要刪除label的name
         training_folder_name = request.POST.get("training_folder_name") #example_folder
 
-        #開始查詢是否有這個label_id
-        input_img_id = Input_imgs.objects.get(img_name = input_img_name).id
+        #查詢資料庫是否有這張input_img的紀錄
+        try:
+            #查詢原圖的id
+            input_img_id = Input_imgs.objects.get(img_name = input_img_name).id
+        #沒有這張input_img的紀錄就直接結束
+        except Input_imgs.DoesNotExist:
+            #紀錄log
+            logger.warn(
+            '[Delete Failed] Delete label failed. Because this input_img: [%s] does not exsit in DB' % (input_img_name)
+            )
+            return JsonResponse({'status': f'delete label failed. Because this input_img: [{input_img_name}] does not exsit in DB'})
+
         input_img_name = input_img_name.replace('.jpg', '') #去除副檔名
 
         #如果資料庫裡有這張input_img名稱的話，就刪除檔案及資料庫的該path
@@ -399,8 +416,15 @@ def delete_label(request):
                     #刪除DB的資料
                     label.delete()
 
+            #紀錄log
+            logger.info(
+            '[Delete] Delete label successfully. Input_img_name: [%s] has been deleted label_name [%s] which label_id is [%s]' % (input_img_name, deleted_label_name, deleted_label_id)
+            )
+            return JsonResponse({'status': f'delete label successfully. input_img_name: [{input_img_name}] has been delete Label_name: [{deleted_label_name}] which label_id: [{deleted_label_id}]'})
         #紀錄log
-        logger.info(
-        '[Delete] LabelMe input_img_name: [%s] has been deleted label_name [%s] which label_id is [%s]' % (input_img_name, deleted_label_name, deleted_label_id)
+        logger.warn(
+        '[Delete] Delete label failed. Because this label_id: [%s] does not exsit in DB' % (deleted_label_id)
         )
-        return JsonResponse({'data': 'successfully'})
+        return JsonResponse({'status': f'delete label failed. Because this label_id: [{deleted_label_id}] does not exsit in DB'})
+
+    return JsonResponse({})
