@@ -52,7 +52,8 @@ def update_dictionary(data, training_folder_path, dictionary_path):
         label_name = shape['label']
         #檢查dictionary是否需要擴充
         if label_name not in dictionary.keys():
-            dictionary_id = len(dictionary) + 1
+            #抓取最大的dictionary_id + 1
+            dictionary_id = max(dictionary.values()) + 1
             #擴充dictionary
             dictionary[label_name] = dictionary_id #dictionary {'new_label_name: total + 1}
             #就更新到dictionary.json
@@ -62,13 +63,13 @@ def update_dictionary(data, training_folder_path, dictionary_path):
     return dictionary
 
 def create_dictionary(training_folder_path):
-    #從資料庫撈出label_name及Rank排名的QuerySet[{'label_name': 'ddd', 'rank': 1},...]，Rank會當作是dictionary_id
-    dictionary_from_db = Labels.objects.values("label_name").annotate(Count('id')).annotate(rank = Window(expression=Rank(), order_by=F('id').asc())).values("label_name", "rank")
+    #從資料庫撈出dictionary_from_db[(label_name, dictionary_id)]
+    dictionary_from_db = Labels.objects.values("label_name").annotate(Count('id')).annotate(Max('dictionary_id')).annotate(rank = Window(expression=Rank(), order_by=F('id').asc())).values_list("label_name", "dictionary_id")
     dictionary = dict()
     #開始建立dictionary.json檔案內容
-    for obj in dictionary_from_db:
-        #obj = {'label_name': 'ddd', 'rank': 1}
-        dictionary[str(obj['label_name'])] = obj['rank']
+    for tup in dictionary_from_db:
+        #tup(label_name, dictionary_id)
+        dictionary[str(tup[0])] = int(tup[1])
 
     #把dictionary存成json檔案 例如:media/labelme/example_folder/dictionary.json
     with open(f'{training_folder_path}/dictionary.json', 'w') as filepath:
