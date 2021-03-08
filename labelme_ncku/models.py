@@ -3,7 +3,7 @@ from django.utils import timezone, dateformat
 
 class Input_imgs(models.Model):
     img_name = models.CharField(max_length=255)
-    img_path = models.CharField(max_length=255)
+    training_folder_name = models.CharField(max_length=255)
     created_at = models.DateTimeField(editable=False)
     updated_at = models.DateTimeField(null=True)
     
