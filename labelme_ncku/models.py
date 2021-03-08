@@ -22,8 +22,8 @@ class Labels(models.Model):
     dictionary_id = models.CharField(max_length=255, null=True)
     label_pic_path = models.CharField(max_length=255)
     npy_path = models.CharField(max_length=255, null=True)
-    input_img = models.ForeignKey(Input_imgs, on_delete=models.CASCADE, related_name= 'labels')
-    user = models.ForeignKey('accounts.Users', on_delete=models.CASCADE, related_name='labels')
+    input_img = models.ForeignKey(Input_imgs, on_delete=models.CASCADE, related_name= 'labels', null=True)
+    user = models.ForeignKey('accounts.Users', on_delete=models.CASCADE, related_name='labels', null=True)
     created_at = models.DateTimeField(editable=False)
     updated_at = models.DateTimeField(null=True)
 

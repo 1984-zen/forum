@@ -31,8 +31,8 @@
         <h2>Hi! Wellcome {{ user_name|default:'Guest' }}</h2>
     
         <br>
-    
-        {% regroup labels by input_img as labels_by_input_img_id %}
+
+        {% regroup input_img_labels by img_name as input_img_labels_by_img_name %}
         <div>
             <li style="float: right;">下載全部的npy檔案(<a href="{{ npz_file | default:'' }}">.npz下載</a>)</li>
         </div>
@@ -46,21 +46,29 @@
                 </tr>
             </thead>
             <tbody>
-                {% for labels in labels_by_input_img_id %}
-                {% for label in labels.list %}
+                {% for input_img in input_img_labels_by_img_name %}
+                {% for label in input_img.list %}
                 <tr>
                     {% if forloop.first %}
-                        <td rowspan="{{ labels.list|length }}" style="width:1%; padding-left: 10pt; padding-right: 10pt; text-align: center;">{{ forloop.parentloop.counter }}</td>
-                        <td style="text-align: center; width:30%; padding-left: 10pt; padding-right: 10pt;" rowspan="{{ labels.list|length }}">
-                            <a href='{{ LABELME_URL }}?collection=LabelMe&mode=c&folder=example_folder&image={{ labels.grouper }}&username={{ user_name }}' target=_blank>{{ labels.grouper }}</a>
+                        <td rowspan="{{ input_img.list|length }}" style="width:1%; padding-left: 10pt; padding-right: 10pt; text-align: center;">{{ forloop.parentloop.counter }}</td>
+                        <td style="text-align: center; width:30%; padding-left: 10pt; padding-right: 10pt;" rowspan="{{ input_img.list|length }}">
+                            <a href='{{ LABELME_URL }}?collection=LabelMe&mode=c&folder=example_folder&image={{ input_img.grouper }}&username={{ user_name }}' target=_blank>{{ input_img.grouper }}</a>
                         </td>
                     {% endif %}
+                    {% if label.labels__label_name %}
                     <td style="text-align: left; width:60%; padding-left: 10pt; padding-right: 10pt;">
-                        <img src="{{ MEDIA_URL }}{{ label.label_pic_path }}" width='50'> {{ label.label_name }}
+                        <img src="{{ MEDIA_URL }}{{ label.labels__label_pic_path }}" width='50'> {{ label.labels__label_name }}
                     </td>
+                    {% else %}
+                    <td></td>
+                    {% endif %}
+                    {% if label.labels__npy_path %}
                     <td>
-                        <a href="/media/{{ label.npy_path }}"><span>npy下載</span></a>
+                        <a href="/media/{{ label.labels__npy_path }}"><span>npy下載</span></a>
                     </td>
+                    {% else %}
+                    <td></td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
                 {% endfor %}
