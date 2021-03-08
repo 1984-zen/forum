@@ -52,8 +52,13 @@ def update_dictionary(data, training_folder_path, dictionary_path):
         label_name = shape['label']
         #檢查dictionary是否需要擴充
         if label_name not in dictionary.keys():
-            #抓取最大的dictionary_id + 1
-            dictionary_id = max(dictionary.values()) + 1
+            #如果dictionary裡面沒有任何key values記錄
+            if(len(dictionary) == 0):
+                dictionary_id = 0
+            #如果有紀錄
+            else:
+                #抓取最大的value + 1
+                dictionary_id = max(dictionary.values()) + 1
             #擴充dictionary
             dictionary[label_name] = dictionary_id #dictionary {'new_label_name: total + 1}
             #就更新到dictionary.json
@@ -62,9 +67,9 @@ def update_dictionary(data, training_folder_path, dictionary_path):
                 filepath.write(json_object)
     return dictionary
 
-def create_dictionary(training_folder_path):
+def create_dictionary(training_folder_path, input_img_id):
     #從資料庫撈出dictionary_from_db[(label_name, dictionary_id)]
-    dictionary_from_db = Labels.objects.values("label_name").annotate(Count('id')).annotate(Max('dictionary_id')).annotate(rank = Window(expression=Rank(), order_by=F('id').asc())).values_list("label_name", "dictionary_id")
+    dictionary_from_db = Labels.objects.filter(input_img_id = input_img_id).values("label_name").annotate(Count('id')).annotate(Max('dictionary_id')).annotate(rank = Window(expression=Rank(), order_by=F('id').asc())).values_list("label_name", "dictionary_id")
     dictionary = dict()
     #開始建立dictionary.json檔案內容
     for tup in dictionary_from_db:
@@ -76,12 +81,12 @@ def create_dictionary(training_folder_path):
         json_object = json.dumps(dictionary, indent = 4) #indent是拿來美化用的，data是上面讀取json檔案的資料
         filepath.write(json_object)
 
-def load_dictionary(training_folder_path, data):
+def load_dictionary(training_folder_path, data, input_img_id):
     dictionary_path = f'{training_folder_path}/dictionary.json'
     #先檢查dictionary檔案是否存在
     if not osp.isfile(dictionary_path):
         #建立dictionary.json
-        create_dictionary(training_folder_path)
+        create_dictionary(training_folder_path, input_img_id)
     #最新的dictionary
     dictionary = update_dictionary(data, training_folder_path, dictionary_path)
     return dictionary
@@ -170,7 +175,7 @@ def show_label_list(request):
     ids = Labels.objects.values('label_name', 'input_img_id').annotate(Count('label_name')).filter(label_name__count__gte=1).annotate(Max('id')).values_list('id__max', flat = True)
 
     #Input_img 去 LEFT JOIN Labels
-    input_img_labels = Input_imgs.objects.filter(img_path = 'example_folder').prefetch_related("labels").values("img_name","labels__label_name","labels__label_pic_path", "id", "labels__input_img", "labels__npy_path")
+    input_img_labels = Input_imgs.objects.filter(training_folder_name = 'example_folder').prefetch_related("labels").values("img_name","labels__label_name","labels__label_pic_path", "id", "labels__input_img", "labels__npy_path")
 
     npz_path = osp.join(settings.BASE_DIR, f'media/labelme/example_folder/example_folder.npz')
 
@@ -255,7 +260,7 @@ def create_label(request):
                 return JsonResponse({'status': f'create label failed. Because this input_img: [{img_name}] does not exsit in DB'})                 
 
             #載入並更新dictionary
-            dictionary = load_dictionary(training_folder_path, data)
+            dictionary = load_dictionary(training_folder_path, data, input_img_id)
 
             label_ids_from_db = Labels.objects.filter(input_img_id = input_img_id).values_list("label_id", flat = True)
 
