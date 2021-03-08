@@ -215,6 +215,9 @@ def create_label(request):
             #label.png存放所在的資料夾路徑
             label_collection_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}/label_images_set/{input_img_name}' #D:\my_projects/media/labelme/example_folder/label_images_set/img3
 
+            #存放所有npy檔案的資料夾路徑
+            npys_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}/npys'
+
             if not osp.exists(training_folder_path):
                 os.mkdir(training_folder_path)
 
@@ -226,6 +229,9 @@ def create_label(request):
 
             if not osp.exists(label_collection_folder_path):
                 os.mkdir(label_collection_folder_path)
+
+            if not osp.exists(npys_folder_path):
+                os.mkdir(npys_folder_path)
 
             #儲存成file.json在 例如:media/labelme/example_folder/jsons/.json
             save_json_data_to_file(jsons_folder_path, input_img_name, data)
