@@ -301,13 +301,14 @@ def create_label(request):
                     '[Create] create label successfully. Input_img_name: [%s] has been create label_name [%s] which label_id is [%s]' % (input_img_name, label_name, label_id)
                     )
 
-            label_paths = Labels.objects.values_list("npy_path", "dictionary_id")
+            training_txt_info = Labels.objects.filter(input_img_id = input_img_id).values_list("npy_path", "dictionary_id")
 
             #從training_folder_path去寫入到training.txt檔案裏面
             with open(osp.join(training_folder_path, 'training.txt'), 'w') as filepath:
-                for label in label_paths:
-                    #RegEx掉labelme/example_folder/之後把npys/black_10x10_zen5.npy + dictionary_id寫進txt裡面
-                    filepath.write(f'{label[0].replace("labelme/example_folder/", "")} {label[1]}' + '\n')
+                for training in training_txt_info:
+                    #training[0] = npy_path, training[1] = dictionary_id
+                    #RegEx掉labelme/example_folder/之後把npys/.npy + dictionary_id寫進txt裡面
+                    filepath.write(f'{training[0].replace("labelme/example_folder/", "")} {training[1]}' + '\n')
 
             print('Saved training.txt to: %s' % training_folder_path)
             return JsonResponse({'status': f'create label successfully. input_img_name: [{input_img_name}] has been create Label_name: [{label_names}]'})
