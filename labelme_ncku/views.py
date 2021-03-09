@@ -170,17 +170,21 @@ def save_files(label_name_to_value, lbl, label_values, label_names, training_fol
 def labelme_url(request):
     return {'LABELME_URL': settings.LABELME_URL}
 
-def show_label_list(request):
+def show_training_list(request):
+    training_folder_list = Input_imgs.objects.values('training_folder_name').annotate(Count('id')).values_list('training_folder_name', flat = True)
+    return TemplateResponse(request, 'show_training_list.html', {'training_folder_list': training_folder_list})
+
+def show_label_list(request, training_folder_name):
     # 用'label_name', 'input_img_id'做分組並列出有大於等於1的結果，然後再取這些分組結果每組的最大id並攤平化 ids = <QuerySet [59, 60, 61, 63]>
     ids = Labels.objects.values('label_name', 'input_img_id').annotate(Count('label_name')).filter(label_name__count__gte=1).annotate(Max('id')).values_list('id__max', flat = True)
 
     #Input_img 去 LEFT JOIN Labels
-    input_img_labels = Input_imgs.objects.filter(training_folder_name = 'example_folder').prefetch_related("labels").values("img_name","labels__label_name","labels__label_pic_path", "id", "labels__input_img", "labels__npy_path")
+    input_img_labels = Input_imgs.objects.filter(training_folder_name = training_folder_name).prefetch_related("labels").values("img_name","labels__label_name","labels__label_pic_path", "id", "labels__input_img", "labels__npy_path")
 
-    npz_path = osp.join(settings.BASE_DIR, f'media/labelme/example_folder/example_folder.npz')
+    npz_path = osp.join(settings.BASE_DIR, f'media/labelme/{training_folder_name}/{training_folder_name}.npz')
 
     if osp.isfile(npz_path):
-        npz_path = f'/media/labelme/example_folder/example_folder.npz'
+        npz_path = f'/media/labelme/{training_folder_name}/{training_folder_name}.npz'
         return TemplateResponse(request, 'label_list.html', {'input_img_labels': input_img_labels, 'npz_path': npz_path})
     return TemplateResponse(request, 'label_list.html', {'input_img_labels': input_img_labels})
 
