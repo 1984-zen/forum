@@ -3,4 +3,5 @@
 /exams/upload_file/
 /nckuh_project/settings.py
 *.pyc
+*.pyc.*
 /media/
