@@ -20,7 +20,8 @@ import sys
 from django.db.models import Count, Max
 from django.db.models.expressions import F, Window
 from django.db.models.functions.window import RowNumber
-from django.db.models.functions import Rank
+from django.db.models.functions import Rank, DenseRank
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 
 # np.set_printoptions(threshold=sys.maxsize, linewidth=sys.maxsize) #測試numpy的時候才需要打開註解，會將print()numpy array全部顯示
 #set logger
@@ -179,14 +180,26 @@ def show_label_list(request, training_folder_name):
     ids = Labels.objects.values('label_name', 'input_img_id').annotate(Count('label_name')).filter(label_name__count__gte=1).annotate(Max('id')).values_list('id__max', flat = True)
 
     #Input_img 去 LEFT JOIN Labels後去除重複的label_name
-    input_img_labels = Input_imgs.objects.filter(training_folder_name = training_folder_name).prefetch_related("labels").values("labels__label_name", "labels__label_pic_path", "labels__npy_path").distinct().values("img_name", "labels__label_name", "labels__label_pic_path", "labels__npy_path")
+    input_img_labels = Input_imgs.objects.filter(training_folder_name = training_folder_name).prefetch_related("labels").values("img_name").annotate(Count('id')).values("id").annotate(rank = Window(expression=DenseRank(), order_by=F('id').asc())).values("img_name", "labels__label_name", "labels__label_pic_path", "labels__npy_path", "rank")
 
     npz_path = osp.join(settings.BASE_DIR, f'media/labelme/{training_folder_name}/{training_folder_name}.npz')
 
+    page = request.GET.get('page', 1)
+
+    paginator = Paginator(input_img_labels, 11)
+
+    try:
+        labels_in_page = paginator.page(page)
+    except PageNotAnInteger:
+        labels_in_page = paginator.page(1)
+    except EmptyPage:
+        labels_in_page = paginator.page(paginator.num_pages)
+
     if osp.isfile(npz_path):
         npz_path = f'/media/labelme/{training_folder_name}/{training_folder_name}.npz'
-        return TemplateResponse(request, 'show_label_list.html', {'input_img_labels': input_img_labels, 'npz_path': npz_path, 'training_folder_name': training_folder_name})
-    return TemplateResponse(request, 'show_label_list.html', {'input_img_labels': input_img_labels, 'training_folder_name': training_folder_name})
+        return TemplateResponse(request, 'show_label_list.html', {'input_img_labels': labels_in_page, 'npz_path': npz_path, 'training_folder_name': training_folder_name})
+
+    return TemplateResponse(request, 'show_label_list.html', {'input_img_labels': labels_in_page, 'training_folder_name': training_folder_name})
 
 def create_label(request):
     if request.method == "POST":

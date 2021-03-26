@@ -31,13 +31,29 @@
         <span><a href="{% url 'logout' %}">log out</a></span>
         {% endif %}
         <h2>Hi! Wellcome {{ user_name|default:'Guest' }}</h2>
-    
+
         <br>
 
+        {% if input_img_labels.has_previous %}
+        <button><a href="?page={{ input_img_labels.previous_page_number }}">previous_question</a></button>
+        {% else %}
+        <button class="disabled"><span>previous_question</span></button>
+        {% endif %}
+
+        {% if input_img_labels.has_next %}
+        <button style="float: right;"><a href="?page={{ input_img_labels.next_page_number }}">next_page</a></button>
+        {% else %}
+        <button style="float: right;" class="disabled"><span>next_page</span></button>
+        {% endif %}
+
+        <br><br>
+
         {% regroup input_img_labels by img_name as input_img_labels_by_img_name %}
+
         <div>
             <li style="float: right;">下載全部的npy檔案(<a href="{{ npz_path | default:'' }}">.npz下載</a>)</li>
         </div>
+
         <table style="width:100%;" border="1">
             <thead>
                 <tr>
@@ -52,7 +68,7 @@
                 {% for label in input_img.list %}
                 <tr>
                     {% if forloop.first %}
-                        <td rowspan="{{ input_img.list|length }}" style="width:1%; padding-left: 10pt; padding-right: 10pt; text-align: center;">{{ forloop.parentloop.counter }}</td>
+                        <td rowspan="{{ input_img.list|length }}" style="width:1%; padding-left: 10pt; padding-right: 10pt; text-align: center;">{{ label.rank }}</td>
                         <td style="text-align: center; width:30%; padding-left: 10pt; padding-right: 10pt;" rowspan="{{ input_img.list|length }}">
                             <a href='{{ LABELME_URL }}?collection=LabelMe&mode=c&folder=example_folder&image={{ input_img.grouper }}&username={{ user_name }}' target=_blank>{{ input_img.grouper }}</a>
                         </td>
@@ -76,6 +92,9 @@
                 {% endfor %}
             </tbody>
         </table>
+
+        <div style="text-align: center;margin:1em 0">{{ input_img_labels.number }}/{{ input_img_labels.paginator.num_pages }}</div>
+
     </div> <!-- end here -->
 </body>
 
