@@ -130,6 +130,7 @@ def lblsave_white_mask(filename, lbl):
         lbl_pil.putpalette((colormap * 255).astype(np.uint8).flatten())
         lbl_pil.save(filename)
     else:
+        #紀錄log
         logger.warn(
             '[%s] Cannot save the pixel-wise class label as PNG, '
             'so please use the npy file.' % filename
@@ -167,6 +168,17 @@ def save_files(label_name_to_value, lbl, label_values, label_names, training_fol
 
         #第一筆會建創成一個新的npz檔案，之後是更新這npz檔案
         savez(npz_path, **npz_data)
+
+def update_training_txt(training_folder_name, training_folder_path):
+                training_folder_ids = Input_imgs.objects.filter(training_folder_name = training_folder_name).values_list("id", flat = True)
+                training_txt = Labels.objects.filter(input_img_id__in = training_folder_ids).values_list("npy_path", "dictionary_id")
+
+                #從training_folder_path去寫入到training.txt檔案裏面
+                with open(osp.join(training_folder_path, 'training.txt'), 'w') as filepath:
+                    for txt in training_txt:
+                        #txt[0] = npy_path
+                        #txt[1] = dictionary_id
+                        filepath.write(f'{txt[0].replace("labelme/example_folder/", "")} {txt[1]}' + '\n') #RegEx掉labelme/example_folder/之後把npys/.npy + dictionary_id寫進txt裡面
 
 def labelme_url(request):
     return {'LABELME_URL': settings.LABELME_URL}
@@ -225,10 +237,10 @@ def create_label(request):
             #save_diretory
             input_img_name = osp.basename(labelme_json_path).replace('.json', '') #baseneme就是獲取檔案名稱，並移除附檔名
 
-            #存放所有json檔案的資料夾路徑
+            #training model的根目錄路徑
             training_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}' #D:\my_projects/media/labelme/example_folder
 
-            #通過labelme處理訓練原圖後生成的json檔案
+            #通過labelme處理訓練後存放json檔的資料夾
             jsons_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}/jsons' #D:\my_projects/media/labelme/example_folder/jsons
 
             #label_images_set資料夾路徑
@@ -272,7 +284,7 @@ def create_label(request):
             except Input_imgs.DoesNotExist:
                 #紀錄log
                 logger.warn(
-                '[Create] Create label failed. Because this input_img: [%s] does not exsit in DB' % (img_name)
+                    '[Create] Create label failed. Because this input_img: [%s] does not exsit in DB' % (img_name)
                 )
                 return JsonResponse({'status': f'create label failed. Because this input_img: [{img_name}] does not exsit in DB'})                 
 
@@ -315,19 +327,17 @@ def create_label(request):
                     create_label.save()
                     #紀錄log
                     logger.info(
-                    '[Create] create label successfully. Input_img_name: [%s] has been create label_name [%s] which label_id is [%s]' % (input_img_name, label_name, label_id)
+                        '[Create] create label successfully. Input_img_name: [%s] has been create label_name [%s] which label_id is [%s]' % (input_img_name, label_name, label_id)
                     )
 
-            training_txt_info = Labels.objects.filter(input_img_id = input_img_id).values_list("npy_path", "dictionary_id")
+            #重新抓取DB的"npy_path", "dictionary_id"資料並覆蓋到training.txt檔案
+            update_training_txt(training_folder_name, training_folder_path)
 
-            #從training_folder_path去寫入到training.txt檔案裏面
-            with open(osp.join(training_folder_path, 'training.txt'), 'w') as filepath:
-                for training in training_txt_info:
-                    #training[0] = npy_path, training[1] = dictionary_id
-                    #RegEx掉labelme/example_folder/之後把npys/.npy + dictionary_id寫進txt裡面
-                    filepath.write(f'{training[0].replace("labelme/example_folder/", "")} {training[1]}' + '\n')
+            #紀錄log
+            logger.info(
+                '[Create] Recorded to training.txt of [%s] training model successfully, file path: [%s/training.txt]' % (training_folder_name, training_folder_path)
+            )
 
-            print('Saved training.txt to: %s' % training_folder_path)
             return JsonResponse({'status': f'create label successfully. input_img_name: [{input_img_name}] has been create Label_name: [{label_names}]'})
 
     return JsonResponse({})
@@ -339,6 +349,7 @@ def delete_label(request):
         deleted_label_id = request.POST.get("deleted_label_id") #要刪除label的id
         deleted_label_name = request.POST.get("deleted_label_name") #要刪除label的name
         training_folder_name = request.POST.get("training_folder_name") #example_folder
+        training_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}' #D:\my_projects/media/labelme/example_folder
 
         #查詢資料庫是否有這張input_img的紀錄
         try:
@@ -348,7 +359,7 @@ def delete_label(request):
         except Input_imgs.DoesNotExist:
             #紀錄log
             logger.warn(
-            '[Delete Failed] Delete label failed. Because this input_img: [%s] does not exsit in DB' % (input_img_name)
+                '[Delete Failed] Delete label failed. Because this input_img: [%s] does not exsit in DB' % (input_img_name)
             )
             return JsonResponse({'status': f'delete label failed. Because this input_img: [{input_img_name}] does not exsit in DB'})
 
@@ -387,6 +398,19 @@ def delete_label(request):
                 #刪除DB的資料
                 label.delete()
 
+                #紀錄log
+                logger.info(
+                    '[Delete] Delete label successfully. Input_img_name: [%s] has been deleted label_name [%s] which label_id is [%s]' % (input_img_name, deleted_label_name, deleted_label_id)
+                )
+
+                #重新抓取DB的"npy_path", "dictionary_id"資料並覆蓋到training.txt檔案
+                update_training_txt(training_folder_name, training_folder_path)
+
+                #紀錄log
+                logger.info(
+                    '[Delete] Recorded to training.txt of [%s] training model successfully, file path: [%s/training.txt]' % (training_folder_name, training_folder_path)
+                )
+
             #如果有重複label_name就更新npy檔案，更新label_pic，更新npz，因為同一個名子都會被合併成一個檔案
             elif is_duplicate_label_name:
 
@@ -409,8 +433,6 @@ def delete_label(request):
 
                 #更新json檔案
                 save_json_data_to_file(jsons_folder_path, input_img_name, data)
-
-                training_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}' #D:\my_projects/media/labelme/example_folder
 
                 #載入dictionary
                 dictionary = load_dictionary(training_folder_path, data)
@@ -448,14 +470,14 @@ def delete_label(request):
                     #刪除DB的資料
                     label.delete()
 
-            #紀錄log
-            logger.info(
-            '[Delete] Delete label successfully. Input_img_name: [%s] has been deleted label_name [%s] which label_id is [%s]' % (input_img_name, deleted_label_name, deleted_label_id)
-            )
+                #紀錄log
+                logger.info(
+                    '[Delete] Delete label successfully. Input_img_name: [%s] has been deleted label_name [%s] which label_id is [%s]' % (input_img_name, deleted_label_name, deleted_label_id)
+                )
             return JsonResponse({'status': f'delete label successfully. input_img_name: [{input_img_name}] has been delete Label_name: [{deleted_label_name}] which label_id: [{deleted_label_id}]'})
         #紀錄log
         logger.warn(
-        '[Delete] Delete label failed. Because this label_id: [%s] does not exsit in DB' % (deleted_label_id)
+            '[Delete] Delete label failed. Because this label_id: [%s] does not exsit in DB' % (deleted_label_id)
         )
         return JsonResponse({'status': f'delete label failed. Because this label_id: [{deleted_label_id}] does not exsit in DB'})
 
