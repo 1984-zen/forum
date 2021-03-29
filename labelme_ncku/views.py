@@ -243,8 +243,8 @@ def create_label(request):
             #通過labelme處理訓練後存放json檔的資料夾
             jsons_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}/jsons' #D:\my_projects/media/labelme/example_folder/jsons
 
-            #label_images_set資料夾路徑
-            label_images_set_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}/label_images_set' #D:\my_projects/media/labelme/example_folder/label_images_set
+            #存放著各input_img的label.png的根目錄
+            label_images_set_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}/label_images_set' #D:\my_projects/media/labelme/example_folder/label_images_set
 
             #label.png存放所在的資料夾路徑
             label_collection_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}/label_images_set/{input_img_name}' #D:\my_projects/media/labelme/example_folder/label_images_set/img3
@@ -258,8 +258,8 @@ def create_label(request):
             if not osp.exists(jsons_folder_path):
                 os.mkdir(jsons_folder_path)
 
-            if not osp.exists(label_images_set_path):
-                os.mkdir(label_images_set_path)
+            if not osp.exists(label_images_set_folder_path):
+                os.mkdir(label_images_set_folder_path)
 
             if not osp.exists(label_collection_folder_path):
                 os.mkdir(label_collection_folder_path)
