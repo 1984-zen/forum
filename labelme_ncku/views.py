@@ -41,7 +41,7 @@ def read_img(data):
     return img
 
 def save_json_data_to_file(jsons_folder_path, img_name, data):
-    with open(f'{jsons_folder_path}/{input_img_name}.json', 'w') as filepath:
+    with open(f'{jsons_folder_path}/{img_name}.json', 'w') as filepath:
         json_object = json.dumps(data, indent = 4) #indent是拿來美化用的，data是上面讀取json檔案的資料
         filepath.write(json_object)
 
@@ -234,8 +234,11 @@ def create_label(request):
             #labelme_json_path D:/my_labelme_project/Annotations/example_folder/img2.json
             data = json.load(open(labelme_json_path))
 
-            #save_diretory
-            input_img_name = osp.basename(labelme_json_path).replace('.json', '') #baseneme就是獲取檔案名稱，並移除附檔名
+            input_img_path = data['imagePath'] #此path為Labelme專案中/Images/example_folder/.jpg
+
+            input_img_name = osp.basename(input_img_path) #img1.jpg
+
+            img_name = input_img_name.replace('.jpg', '') #img1
 
             #training model的根目錄路徑
             training_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}' #D:\my_projects/media/labelme/example_folder
@@ -247,7 +250,7 @@ def create_label(request):
             label_images_set_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}/label_images_set' #D:\my_projects/media/labelme/example_folder/label_images_set
 
             #label.png存放所在的資料夾路徑
-            label_collection_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}/label_images_set/{input_img_name}' #D:\my_projects/media/labelme/example_folder/label_images_set/img3
+            label_collection_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}/label_images_set/{img_name}' #D:\my_projects/media/labelme/example_folder/label_images_set/img3
 
             #存放所有npy檔案的資料夾路徑
             npys_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}/npys'
@@ -272,10 +275,6 @@ def create_label(request):
 
             #從json檔讀取base64圖
             img = read_img(data)
-
-            input_img_path = data['imagePath'] #此path為Labelme專案中/Images/example_folder/.jpg
-
-            img_name = osp.basename(input_img_path) #img_name.jpg
 
             #查詢資料庫是否有這張input_img的紀錄
             try:
@@ -303,8 +302,8 @@ def create_label(request):
             #img.shape 的.shape會是一組tuple，像是(x維度，y個元素)
             lbl = utils.shapes_to_label(img.shape, shapes, label_name_to_value) #shape_to_label(img_shape, shape, label_name_to_value, type='class')
 
-            #將input_img原圖另存在 例如:media/labelme/example_folder/label_images_set/input_img_name/.npy
-            PIL.Image.fromarray(img).save(f'{label_collection_folder_path}/{input_img_name}.png') #fromarray(img)裡面的參數為一個做好的圖片，然後存在一個路徑下，這裡是存image_img.png
+            #將input_img原圖另存在 例如:media/labelme/example_folder/label_images_set/img_name/.npy
+            PIL.Image.fromarray(img).save(f'{label_collection_folder_path}/{img_name}.png') #fromarray(img)裡面的參數為一個做好的圖片，然後存在一個路徑下，這裡是存image_img.png
 
             label_values, label_names = [], []
 
@@ -313,7 +312,7 @@ def create_label(request):
                 label_names.append(ln) #ln就是label name
 
             #開始一張一張存檔案(npy, npz, label_pic)及寫入資料庫
-            save_files(label_name_to_value, lbl, label_values, label_names, training_folder_name, input_img_name, label_collection_folder_path)
+            save_files(label_name_to_value, lbl, label_values, label_names, training_folder_name, img_name, label_collection_folder_path)
 
             #資料庫寫入這筆label
             for shape in data['shapes']:
@@ -321,8 +320,8 @@ def create_label(request):
                 label_name = shape['label']
                 #比對資料庫是否有這筆label_id(這張原圖中)
                 if label_id not in label_ids_from_db:
-                    label_pic_path = f'labelme/{training_folder_name}/label_images_set/{input_img_name}/{input_img_name}_{label_name}.png'
-                    npy_path = f'labelme/{training_folder_name}/npys/{input_img_name}_{label_name}.npy'
+                    label_pic_path = f'labelme/{training_folder_name}/label_images_set/{img_name}/{img_name}_{label_name}.png'
+                    npy_path = f'labelme/{training_folder_name}/npys/{img_name}_{label_name}.npy'
                     create_label = Labels(label_name = label_name, label_pic_path = label_pic_path, npy_path = npy_path, user_id = user_id, input_img_id = input_img_id, label_id = label_id, dictionary_id = dictionary[label_name])
                     create_label.save()
                     #紀錄log
@@ -524,7 +523,7 @@ def delete_label(request):
             )
             return JsonResponse({'status': f'delete label failed. Because this input_img: [{input_img_name}] does not exsit in DB'})
 
-        input_img_name = input_img_name.replace('.jpg', '') #去除副檔名
+        img_name = input_img_name.replace('.jpg', '') #去除副檔名
 
         #如果資料庫裡有這個label_id的話，就刪除檔案及資料庫
         label = Labels.objects.filter(input_img_id = input_img_id).filter(label_id = deleted_label_id)
@@ -554,7 +553,7 @@ def delete_label(request):
                 npz_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}/{training_folder_name}.npz'
                 if osp.isfile(npz_path):
                     npz_data = dict(np.load(npz_path))
-                    del npz_data[f'{input_img_name}_{deleted_label_name}']
+                    del npz_data[f'{img_name}_{deleted_label_name}']
 
                 #刪除DB的資料
                 label.delete()
@@ -576,7 +575,7 @@ def delete_label(request):
             elif is_duplicate_label_name:
 
                 #json_file_path是 D:/my_labelme_project/Annotations/example_folder/img2.json
-                json_file_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}/jsons/{input_img_name}.json'
+                json_file_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}/jsons/{img_name}.json'
 
                 data = json.load(open(json_file_path))
 
@@ -611,7 +610,7 @@ def delete_label(request):
                 #img.shape 的.shape會是一組tuple，像是(x維度，y個元素)
                 lbl = utils.shapes_to_label(img.shape, shapes, label_name_to_value) #shape_to_label(img_shape, shape, label_name_to_value, type='class')
 
-                label_collection_folder_path = f'{training_folder_path}/label_images_set/{input_img_name}'
+                label_collection_folder_path = f'{training_folder_path}/label_images_set/{img_name}'
 
                 label_values, label_names = [], []
 
@@ -620,7 +619,7 @@ def delete_label(request):
                     label_names.append(ln) #ln就是label name
 
                 #開始一張一張存檔案(npy, npz, label_pic)及寫入資料庫
-                save_files(label_name_to_value, lbl, label_values, label_names, training_folder_name, input_img_name, label_collection_folder_path)
+                save_files(label_name_to_value, lbl, label_values, label_names, training_folder_name, img_name, label_collection_folder_path)
 
                 #如果json檔沒有任何一個叫deleted_label_name，但資料庫有的話，就全部刪除資料庫裡有叫deleted_label_name的資料
                 if not label_name_to_value:
