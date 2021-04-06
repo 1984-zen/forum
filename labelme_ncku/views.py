@@ -40,7 +40,7 @@ def read_img(data):
     img = utils.img_b64_to_arr(imageData)
     return img
 
-def save_json_data_to_file(jsons_folder_path, input_img_name, data):
+def save_json_data_to_file(jsons_folder_path, img_name, data):
     with open(f'{jsons_folder_path}/{input_img_name}.json', 'w') as filepath:
         json_object = json.dumps(data, indent = 4) #indent是拿來美化用的，data是上面讀取json檔案的資料
         filepath.write(json_object)
@@ -54,7 +54,7 @@ def update_dictionary(data, training_folder_path, dictionary_path):
         #檢查dictionary是否需要擴充
         if label_name not in dictionary.keys():
             #如果dictionary裡面沒有任何key values記錄
-            if(len(dictionary) == 0):
+            if len(dictionary) == 0:
                 dictionary_id = 0
             #如果有紀錄
             else:
@@ -136,7 +136,7 @@ def lblsave_white_mask(filename, lbl):
             'so please use the npy file.' % filename
         )
 
-def save_files(label_name_to_value, lbl, label_values, label_names, training_folder_name, input_img_name, label_collection_folder_path):
+def save_files(label_name_to_value, lbl, label_values, label_names, training_folder_name, img_name, label_collection_folder_path):
     for i in range(len(label_name_to_value)):
         #(lbl==[label_values[i]])會印出True/False，加上astype(np.uint8)會印出0/1
         label_numpy = (lbl==[label_values[i]]).astype(np.uint8) #lbl包含了很多個numpy array，"=="可以只找出對應dictionary的numpy array
@@ -144,15 +144,15 @@ def save_files(label_name_to_value, lbl, label_values, label_names, training_fol
         #布林遮罩，判斷numpy array裡面的label_numpy > 0的話就替換成對應的label_values值(label_values等同dictionary_id)
         label_numpy[label_numpy > 0] = label_values[i]
 
-        npy_path = osp.join(settings.BASE_DIR, f'media/labelme/{training_folder_name}/npys/{input_img_name}_{label_names[i]}.npy')
+        npy_path = osp.join(settings.BASE_DIR, f'media/labelme/{training_folder_name}/npys/{img_name}_{label_names[i]}.npy')
 
         #儲存npy檔案，存在 例如:media/labelme/example_folder/npys/.npy
         save(npy_path, label_numpy)
 
-        label_pic_path = osp.join(label_collection_folder_path, f'{input_img_name}_{label_names[i]}.png')
+        label_pic_path = osp.join(label_collection_folder_path, f'{img_name}_{label_names[i]}.png')
 
         #儲存label_pic圖片，存在 例如:media/labelme/example_folder/label_images_set/img1/.png
-        lblsave_white_mask(label_pic_path, label_numpy) #產生label_numpy圖片
+        lblsave_white_mask(label_pic_path, label_numpy) #產生label_pic
 
         #儲存合併在npz檔案裡面 例如:media/labelme/example_folder/.npz
         npz_path = osp.join(settings.BASE_DIR, f'media/labelme/{training_folder_name}/{training_folder_name}.npz')
@@ -164,7 +164,7 @@ def save_files(label_name_to_value, lbl, label_values, label_names, training_fol
         elif osp.isfile(npz_path):
             npz_data = dict(np.load(npz_path)) #解開npz
 
-        npz_data[f'{input_img_name}_{label_names[i]}'] = label_numpy
+        npz_data[f'{img_name}_{label_names[i]}'] = label_numpy
 
         #第一筆會建創成一個新的npz檔案，之後是更新這npz檔案
         savez(npz_path, **npz_data)
@@ -268,7 +268,7 @@ def create_label(request):
                 os.mkdir(npys_folder_path)
 
             #儲存成file.json在 例如:media/labelme/example_folder/jsons/.json
-            save_json_data_to_file(jsons_folder_path, input_img_name, data)
+            save_json_data_to_file(jsons_folder_path, img_name, data)
 
             #從json檔讀取base64圖
             img = read_img(data)
@@ -296,7 +296,7 @@ def create_label(request):
             #第一步先把資料庫沒有的label_id加到label_name_to_value名單
             label_name_to_value = create_label_name_to_value(data, dictionary, 1, 0, label_ids_from_db)
 
-            #第二步把label_name_to_value名單中的labels及points(注意:label_name可能會重複，但shape內容不同)加到shapes
+            #第二步把label_name_to_value從data的名單中將labels及points(注意:label_name可能會重複，但shape內容不同)加到shapes
             shapes = get_shapes(data, label_name_to_value)
 
             #開始處理numpy_array，lbl包含了每個label的numpy_array
@@ -309,7 +309,7 @@ def create_label(request):
             label_values, label_names = [], []
 
             for ln, lv in label_name_to_value.items():
-                label_values.append(lv) #lv就是Tuple的index編號: 0, 1, 2, 3, ...
+                label_values.append(lv) #lv就是對應label的dictionary_id
                 label_names.append(ln) #ln就是label name
 
             #開始一張一張存檔案(npy, npz, label_pic)及寫入資料庫
@@ -342,6 +342,167 @@ def create_label(request):
 
     return JsonResponse({})
 
+def update_label(request):
+    if request.method == "POST":
+        username = request.POST.get("username")
+        input_img_name = request.POST.get("input_img_name") #img1.jpg
+        img_name = input_img_name.replace('.jpg', '') #img1
+        edited_label_id = request.POST.get("edited_label_id") #要Edited label的id
+        edited_label_name = request.POST.get("edited_label_name") #Edited label的name
+        training_folder_name = request.POST.get("training_folder_name") #example_folder
+        #training model的根目錄路徑
+        training_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}' #D:\my_projects/media/labelme/example_folder
+        labelme_json_path = request.POST.get("labelme_json_path") #example_folder #D:\my_projects/media/labelme/example_folder/img1.json
+        #通過labelme處理訓練後存放json檔的資料夾
+        jsons_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}/jsons' #D:\my_projects/media/labelme/example_folder/jsons
+        #label.png存放所在的資料夾路徑
+        label_collection_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}/label_images_set/{img_name}' #D:\my_projects/media/labelme/example_folder/label_images_set/img3
+
+        #查詢資料庫是否有這張input_img的紀錄
+        try:
+            input_img_id = Input_imgs.objects.get(img_name = input_img_name).id
+        #沒有這張input_img的紀錄就直接結束
+        except Input_imgs.DoesNotExist:
+            #紀錄log
+            logger.warn(
+                '[Edit] Edit label failed. Because this input_img: [%s] does not exsit in DB' % (input_img_name)
+            )
+            return JsonResponse({'status': f'edit label failed. Because this input_img: [{input_img_name}] does not exsit in DB'})
+
+        #如果資料庫裡有這個label_id的話，就Edit檔案及資料庫
+        label = Labels.objects.filter(input_img_id = input_img_id).filter(label_id = edited_label_id)
+        has_label_id = label.values("label_id").annotate(Count("label_id")).filter(label_id__count__gt = 0)
+
+        #如果有這個label_id
+        if has_label_id:
+            #如果檔案存在且是一個檔案且附檔名是.json
+            if osp.isfile(labelme_json_path) and labelme_json_path.endswith('.json'):
+                #用剛剛的username查詢user_id
+                user_id = Users.objects.get(username = username).id
+
+                #labelme_json_path D:/my_labelme_project/Annotations/example_folder/img2.json
+                data = json.load(open(labelme_json_path))
+                #儲存成file.json在 例如:media/labelme/example_folder/jsons/.json
+                save_json_data_to_file(jsons_folder_path, img_name, data)
+
+                #從json檔讀取base64圖
+                img = read_img(data)              
+
+                #載入並更新dictionary
+                dictionary = load_dictionary(training_folder_path, data, input_img_id)
+                #開始驗證是否有修改label name的rename情況
+                old_label_name = label.values_list('label_name', flat = True)[0]
+
+                if old_label_name == edited_label_name:
+                    #第一步先把要edit的label_id加到label_name_to_value名單
+                    label_name_to_value = create_label_name_to_value(data, dictionary, 0, 1, [edited_label_name]) #第3個參數為create_status, 第4個參數為delete_status
+
+                    #第二步把label_name_to_value從data的名單中將labels及points(注意:label_name可能會重複，但shape內容不同)加到shapes
+                    shapes = get_shapes(data, label_name_to_value)
+
+                    #開始處理numpy_array，lbl包含了每個label的numpy_array
+                    #img.shape 的.shape會是一組tuple，像是(x維度，y個元素)
+                    lbl = utils.shapes_to_label(img.shape, shapes, label_name_to_value) #shape_to_label(img_shape, shape, label_name_to_value, type='class')
+
+                    label_values, label_names = [], []
+
+                    for ln, lv in label_name_to_value.items():
+                        label_values.append(lv) #lv就是對應label的dictionary_id
+                        label_names.append(ln) #ln就是label name
+
+                    #開始一張一張存檔案(npy, npz, label_pic)及寫入資料庫
+                    save_files(label_name_to_value, lbl, label_values, label_names, training_folder_name, img_name, label_collection_folder_path)
+
+                #如果edited_label_name與原先不同，就要刪除舊npy及label_pic檔案，以及更新到資料庫及npz檔案還有重新覆蓋training.txt
+                elif old_label_name != edited_label_name:
+                    #查找dictionary_id比對有無同樣叫這個edited_label_name
+                    dictionary_id = dictionary[edited_label_name]
+
+                    #刪除舊label_name的npy檔案
+                    npy_path = label.values_list('npy_path', flat = True)[0]
+                    if osp.isfile(f'{settings.BASE_DIR}/media/{npy_path}'):
+                        #移除npy檔案 例如:labelme/example_folder/npys/.npy
+                        os.remove(f'{settings.BASE_DIR}/media/{npy_path}')
+
+                    #刪除舊label_name的label_pic圖片
+                    label_pic_path = label.values_list('label_pic_path', flat = True)[0]
+                    if osp.isfile(f'{settings.BASE_DIR}/media/{label_pic_path}'):
+                        #移除npy檔案 例如:labelme/example_folder/label_images_set/img1/.png
+                        os.remove(f'{settings.BASE_DIR}/media/{label_pic_path}')
+
+                    npy_path = f'labelme/{training_folder_name}/npys/{img_name}_{edited_label_name}.npy'
+
+                    label_pic_path = f'labelme/{training_folder_name}/label_images_set/{img_name}/{img_name}_{edited_label_name}.png'
+
+                    #資料庫修改這筆label的label_name
+                    label.update(label_name = edited_label_name, dictionary_id = dictionary_id, npy_path = npy_path, label_pic_path = label_pic_path)
+
+                    #第一步先把要edit的label_id加到label_name_to_value名單
+                    #因為原本的npy和label_pic有異動，所以要叫出所有叫這個old_label_name的檔案都重新產一次npy和label_pic
+                    label_name_to_value = create_label_name_to_value(data, dictionary, 0, 1, [old_label_name, edited_label_name]) #第3個參數為create_status, 第4個參數為delete_status
+
+                    #第二步把label_name_to_value從data的名單中將labels及points(注意:label_name可能會重複，但shape內容不同)加到shapes
+                    shapes = get_shapes(data, label_name_to_value)
+
+                    #開始處理numpy_array，lbl包含了每個label的numpy_array
+                    #img.shape 的.shape會是一組tuple，像是(x維度，y個元素)
+                    lbl = utils.shapes_to_label(img.shape, shapes, label_name_to_value) #shape_to_label(img_shape, shape, label_name_to_value, type='class')
+
+                    label_values, label_names = [], []
+
+                    for ln, lv in label_name_to_value.items():
+                        label_values.append(lv) #lv就是對應label的dictionary_id
+                        label_names.append(ln) #ln就是label name
+
+                    #開始修改npz，因為old_label_name已經不存在了，所以從npz移除該old_label_name的相關key
+                    npz_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}/{training_folder_name}.npz'
+
+                    #當edited_label_name是修改了原先的old_label_name而導致old_label_name已不存在時，這個old_label_name就要從npz裡面remove掉
+                    if osp.isfile(npz_path):
+                        #解開npz
+                        npz_data = dict(np.load(npz_path))
+                        #先確認npz裡面有old_label_name這個key的名稱存在
+                        if f'{img_name}_{old_label_name}' in npz_data:
+                            del npz_data[f'{img_name}_{old_label_name}']
+                            #重要! 一定要儲存npz上面的del才會生效
+                            savez(npz_path, **npz_data)
+
+                    #開始一張一張存檔案(npy, npz, label_pic)及寫入資料庫
+                    save_files(label_name_to_value, lbl, label_values, label_names, training_folder_name, img_name, label_collection_folder_path)
+
+                    #紀錄log
+                    logger.info(
+                        '[Edit] rename label successfully. Input_img_name: [%s] has been renamed label_name [%s] to new name [%s] which label_id is [%s]' % (input_img_name, old_label_name, edited_label_name, edited_label_id)
+                    )
+
+                    #重新抓取DB的"npy_path", "dictionary_id"資料並覆蓋到training.txt檔案
+                    update_training_txt(training_folder_name, training_folder_path)
+
+                    #紀錄log
+                    logger.info(
+                    '[Edit] Recorded to training.txt of [%s] training model successfully, file path: [%s/training.txt]' % (training_folder_name, training_folder_path)
+                    )
+
+                #紀錄log
+                logger.info(
+                    '[Edit] edited label successfully. Input_img_name: [%s] has been edit label_name [%s] npy file and label_pic which label_id is [%s]' % (input_img_name, edited_label_name, edited_label_id)
+                )
+                return JsonResponse({'status': f'edited label successfully. input_img_name: [{input_img_name}] has been updated Label_name: [{edited_label_name}]'})
+
+            #紀錄log
+            logger.warn(
+            '[Edit] edit label failed. Because this [%s.json] file does not exsit in [%s]' % (img_name, labelme_json_path)
+            )
+            return JsonResponse({'status': f'edit label failed. Because this json file does not exsit in {labelme_json_path}'})
+
+        #紀錄log
+        logger.warn(
+            '[Edit] edit label failed. Because this label_id: [%s] does not exsit in DB' % (edited_label_id)
+        )
+        return JsonResponse({'status': f'edit label failed. Because this label_id: [{edited_label_id}] does not exsit in DB'})
+
+    return JsonResponse({})
+
 def delete_label(request):
     if request.method == "POST":
         #該label的原圖檔案名稱
@@ -365,7 +526,7 @@ def delete_label(request):
 
         input_img_name = input_img_name.replace('.jpg', '') #去除副檔名
 
-        #如果資料庫裡有這張input_img名稱的話，就刪除檔案及資料庫的該path
+        #如果資料庫裡有這個label_id的話，就刪除檔案及資料庫
         label = Labels.objects.filter(input_img_id = input_img_id).filter(label_id = deleted_label_id)
         has_label_id = label.values("label_id").annotate(Count("label_id")).filter(label_id__count__gt = 0)
 
@@ -432,7 +593,7 @@ def delete_label(request):
                 jsons_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}/jsons' #D:\my_projects/media/labelme/example_folder/jsons
 
                 #更新json檔案
-                save_json_data_to_file(jsons_folder_path, input_img_name, data)
+                save_json_data_to_file(jsons_folder_path, img_name, data)
 
                 #載入dictionary
                 dictionary = load_dictionary(training_folder_path, data)
