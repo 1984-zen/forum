@@ -217,7 +217,7 @@ def create_label(request):
     if request.method == "POST":
         username = request.POST.get("username")
         #labelme_json_path = D:/my_labelme_project/Annotations/example_folder/img2.json
-        labelme_json_path = request.POST.get("labelme_json_file_path")
+        labelme_json_path = request.POST.get("labelme_json_path")
 
         #如果檔案存在且是一個檔案且附檔名是.json
         if osp.isfile(labelme_json_path) and labelme_json_path.endswith('.json'):
@@ -278,7 +278,7 @@ def create_label(request):
 
             #查詢資料庫是否有這張input_img的紀錄
             try:
-                input_img_id = Input_imgs.objects.get(img_name = img_name).id
+                input_img_id = Input_imgs.objects.get(img_name = input_img_name).id
             #沒有這張input_img的紀錄就直接結束
             except Input_imgs.DoesNotExist:
                 #紀錄log
