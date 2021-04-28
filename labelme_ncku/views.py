@@ -154,21 +154,6 @@ def save_files(label_name_to_value, lbl, label_values, label_names, training_fol
         #儲存label_pic圖片，存在 例如:media/labelme/example_folder/label_images_set/img1/.png
         lblsave_white_mask(label_pic_path, label_numpy) #產生label_pic
 
-        #儲存合併在npz檔案裡面 例如:media/labelme/example_folder/.npz
-        npz_path = osp.join(settings.BASE_DIR, f'media/labelme/{training_folder_name}/{training_folder_name}.npz')
-
-        # 如果沒有npz檔案，就要先建立檔案
-        if not osp.isfile(npz_path):
-            npz_data = dict() #因為npz是dic格式
-        # 如果有npz檔案
-        elif osp.isfile(npz_path):
-            npz_data = dict(np.load(npz_path)) #解開npz
-
-        npz_data[f'{img_name}_{label_names[i]}'] = label_numpy
-
-        #第一筆會建創成一個新的npz檔案，之後是更新這npz檔案
-        savez(npz_path, **npz_data)
-
 def update_training_txt(training_folder_name, training_folder_path):
                 training_folder_ids = Input_imgs.objects.filter(training_folder_name = training_folder_name).values_list("id", flat = True)
                 training_txt = Labels.objects.filter(input_img_id__in = training_folder_ids).values_list("npy_path", "dictionary_id")
@@ -194,8 +179,6 @@ def show_label_list(request, training_folder_name):
     #Input_img 去 LEFT JOIN Labels後去除重複的label_name
     input_img_labels = Input_imgs.objects.filter(training_folder_name = training_folder_name).prefetch_related("labels").values("img_name").annotate(Count('id')).values("id").annotate(rank = Window(expression=DenseRank(), order_by=F('id').asc())).values("img_name", "labels__label_name", "labels__label_pic_path", "labels__npy_path", "rank")
 
-    npz_path = osp.join(settings.BASE_DIR, f'media/labelme/{training_folder_name}/{training_folder_name}.npz')
-
     page = request.GET.get('page', 1)
 
     paginator = Paginator(input_img_labels, 11)
@@ -206,10 +189,6 @@ def show_label_list(request, training_folder_name):
         labels_in_page = paginator.page(1)
     except EmptyPage:
         labels_in_page = paginator.page(paginator.num_pages)
-
-    if osp.isfile(npz_path):
-        npz_path = f'/media/labelme/{training_folder_name}/{training_folder_name}.npz'
-        return TemplateResponse(request, 'show_label_list.html', {'input_img_labels': labels_in_page, 'npz_path': npz_path, 'training_folder_name': training_folder_name})
 
     return TemplateResponse(request, 'show_label_list.html', {'input_img_labels': labels_in_page, 'training_folder_name': training_folder_name})
 
@@ -311,7 +290,7 @@ def create_label(request):
                 label_values.append(lv) #lv就是對應label的dictionary_id
                 label_names.append(ln) #ln就是label name
 
-            #開始一張一張存檔案(npy, npz, label_pic)及寫入資料庫
+            #開始一張一張存檔案(npy, label_pic)及寫入資料庫
             save_files(label_name_to_value, lbl, label_values, label_names, training_folder_name, img_name, label_collection_folder_path)
 
             #資料庫寫入這筆label
@@ -409,10 +388,10 @@ def update_label(request):
                         label_values.append(lv) #lv就是對應label的dictionary_id
                         label_names.append(ln) #ln就是label name
 
-                    #開始一張一張存檔案(npy, npz, label_pic)及寫入資料庫
+                    #開始一張一張存檔案(npy, label_pic)及寫入資料庫
                     save_files(label_name_to_value, lbl, label_values, label_names, training_folder_name, img_name, label_collection_folder_path)
 
-                #如果edited_label_name與原先不同，就要刪除舊npy及label_pic檔案，以及更新到資料庫及npz檔案還有重新覆蓋training.txt
+                #如果edited_label_name與原先不同，就要刪除舊npy及label_pic檔案，以及更新到資料庫及重新覆蓋training.txt
                 elif old_label_name != edited_label_name:
                     #查找dictionary_id比對有無同樣叫這個edited_label_name
                     dictionary_id = dictionary[edited_label_name]
@@ -453,20 +432,7 @@ def update_label(request):
                         label_values.append(lv) #lv就是對應label的dictionary_id
                         label_names.append(ln) #ln就是label name
 
-                    #開始修改npz，因為old_label_name已經不存在了，所以從npz移除該old_label_name的相關key
-                    npz_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}/{training_folder_name}.npz'
-
-                    #當edited_label_name是修改了原先的old_label_name而導致old_label_name已不存在時，這個old_label_name就要從npz裡面remove掉
-                    if osp.isfile(npz_path):
-                        #解開npz
-                        npz_data = dict(np.load(npz_path))
-                        #先確認npz裡面有old_label_name這個key的名稱存在
-                        if f'{img_name}_{old_label_name}' in npz_data:
-                            del npz_data[f'{img_name}_{old_label_name}']
-                            #重要! 一定要儲存npz上面的del才會生效
-                            savez(npz_path, **npz_data)
-
-                    #開始一張一張存檔案(npy, npz, label_pic)及寫入資料庫
+                    #開始一張一張存檔案(npy, label_pic)及寫入資料庫
                     save_files(label_name_to_value, lbl, label_values, label_names, training_folder_name, img_name, label_collection_folder_path)
 
                     #紀錄log
@@ -534,7 +500,7 @@ def delete_label(request):
             #開始檢查是否有重複的label_name
             is_duplicate_label_name = Labels.objects.filter(input_img_id__in = label.values("input_img_id")).filter(label_name = deleted_label_name).values("label_name").annotate(Count("label_name")).filter(label_name__count__gt = 1)
 
-            #如果沒有重複label_name就直接刪除npy檔, 從npz裡面移除, 刪除label_pic檔案, 刪除DB裡的資料
+            #如果沒有重複label_name就直接刪除npy檔, 刪除label_pic檔案, 刪除DB裡的資料
             if not is_duplicate_label_name:
 
                 npy_path = label.values_list('npy_path', flat = True)[0]
@@ -548,12 +514,6 @@ def delete_label(request):
                 #刪除label_pic檔案
                 if osp.isfile(f'{settings.BASE_DIR}/media/{label_pic_path}'):
                     os.remove(f'{settings.BASE_DIR}/media/{label_pic_path}')
-
-                #從npz移除該label_numpy
-                npz_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}/{training_folder_name}.npz'
-                if osp.isfile(npz_path):
-                    npz_data = dict(np.load(npz_path))
-                    del npz_data[f'{img_name}_{deleted_label_name}']
 
                 #刪除DB的資料
                 label.delete()
@@ -571,7 +531,7 @@ def delete_label(request):
                     '[Delete] Recorded to training.txt of [%s] training model successfully, file path: [%s/training.txt]' % (training_folder_name, training_folder_path)
                 )
 
-            #如果有重複label_name就更新npy檔案，更新label_pic，更新npz，因為同一個名子都會被合併成一個檔案
+            #如果有重複label_name就更新npy檔案，更新label_pic，因為同一個名子都會被合併成一個檔案
             elif is_duplicate_label_name:
 
                 #json_file_path是 D:/my_labelme_project/Annotations/example_folder/img2.json
@@ -618,7 +578,7 @@ def delete_label(request):
                     label_values.append(lv) #lv就是Tuple的index編號: 0, 1, 2, 3, ...
                     label_names.append(ln) #ln就是label name
 
-                #開始一張一張存檔案(npy, npz, label_pic)及寫入資料庫
+                #開始一張一張存檔案(npy, label_pic)及寫入資料庫
                 save_files(label_name_to_value, lbl, label_values, label_names, training_folder_name, img_name, label_collection_folder_path)
 
                 #如果json檔沒有任何一個叫deleted_label_name，但資料庫有的話，就全部刪除資料庫裡有叫deleted_label_name的資料

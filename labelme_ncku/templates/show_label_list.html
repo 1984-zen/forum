@@ -50,10 +50,6 @@
 
         {% regroup input_img_labels by img_name as input_img_labels_by_img_name %}
 
-        <div>
-            <li style="float: right;">下載全部的npy檔案(<a href="{{ npz_path | default:'' }}">.npz下載</a>)</li>
-        </div>
-
         <table style="width:100%;" border="1">
             <thead>
                 <tr>
