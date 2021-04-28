@@ -555,7 +555,7 @@ def delete_label(request):
                 save_json_data_to_file(jsons_folder_path, img_name, data)
 
                 #載入dictionary
-                dictionary = load_dictionary(training_folder_path, data)
+                dictionary = load_dictionary(training_folder_path, data, input_img_id)
 
                 #把json檔內有叫deleted_label_name的加到label_name_to_value名單
                 label_name_to_value = create_label_name_to_value(data, dictionary, 0, 1, [deleted_label_name])
