@@ -4,6 +4,7 @@
 <head>
     <meta charset="utf-8">
     {% load static %}
+    {% load replace_underscore %}
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
     <title>LabelMe</title>
 </head>
@@ -66,7 +67,7 @@
                     {% if forloop.first %}
                         <td rowspan="{{ input_img.list|length }}" style="width:1%; padding-left: 10pt; padding-right: 10pt; text-align: center;">{{ label.rank }}</td>
                         <td style="text-align: center; width:30%; padding-left: 10pt; padding-right: 10pt;" rowspan="{{ input_img.list|length }}">
-                            <a href='{{ LABELME_URL }}?collection=LabelMe&mode=c&folder=example_folder&image={{ input_img.grouper }}&username={{ user_name }}' target=_blank>{{ input_img.grouper }}</a>
+                            <a href='{{ LABELME_URL }}?collection=LabelMe&mode=c&folder={{ training_folder_name }}/{{ input_img.grouper | replace_underscore }}&image={{ input_img.grouper }}&username={{ user_name }}' target=_blank>{{ input_img.grouper }}</a>
                         </td>
                     {% endif %}
                     {% if label.labels__label_name %}
