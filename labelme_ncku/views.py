@@ -203,12 +203,7 @@ def create_label(request):
             #用剛剛的username查詢user_id
             user_id = Users.objects.get(username = username).id
 
-            pattern = '^(\w:)?\/(\w+)\/(\w+)\/(\w+)'
-            match = re.search(pattern, labelme_json_path)
-            if match:
-                #group()會拿到full match，D:/my_labelme_project/Annotations/example_folder
-                #training_folder_name = example_folder
-                training_folder_name = match.group().split('/')[-1]
+            training_folder_name = request.POST.get("training_folder_name").split("/")[0] #example_folder
 
             #labelme_json_path D:/my_labelme_project/Annotations/example_folder/img2.json
             data = json.load(open(labelme_json_path))
@@ -234,6 +229,16 @@ def create_label(request):
             #存放所有npy檔案的資料夾路徑
             npys_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}/npys'
 
+            #查詢資料庫是否有這張input_img的紀錄
+            try:
+                input_img_id = Input_imgs.objects.get(img_name = input_img_name).id
+            #沒有這張input_img的紀錄就直接結束
+            except Input_imgs.DoesNotExist:
+                #紀錄log
+                logger.warn(
+                    '[Create] Create label failed. Because this input_img: [%s] does not exsit in DB' % (img_name)
+                )
+                return JsonResponse({'status': f'create label failed. Because this input_img: [{img_name}] does not exsit in DB'})                 
             if not osp.exists(training_folder_path):
                 os.mkdir(training_folder_path)
 
@@ -255,16 +260,6 @@ def create_label(request):
             #從json檔讀取base64圖
             img = read_img(data)
 
-            #查詢資料庫是否有這張input_img的紀錄
-            try:
-                input_img_id = Input_imgs.objects.get(img_name = input_img_name).id
-            #沒有這張input_img的紀錄就直接結束
-            except Input_imgs.DoesNotExist:
-                #紀錄log
-                logger.warn(
-                    '[Create] Create label failed. Because this input_img: [%s] does not exsit in DB' % (img_name)
-                )
-                return JsonResponse({'status': f'create label failed. Because this input_img: [{img_name}] does not exsit in DB'})                 
 
             #載入並更新dictionary
             dictionary = load_dictionary(training_folder_path, data, input_img_id)
@@ -327,7 +322,7 @@ def update_label(request):
         img_name = input_img_name.replace('.jpg', '') #img1
         edited_label_id = request.POST.get("edited_label_id") #要Edited label的id
         edited_label_name = request.POST.get("edited_label_name") #Edited label的name
-        training_folder_name = request.POST.get("training_folder_name") #example_folder
+        training_folder_name = request.POST.get("training_folder_name").split("/")[0] #example_folder
         #training model的根目錄路徑
         training_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}' #D:\my_projects/media/labelme/example_folder
         labelme_json_path = request.POST.get("labelme_json_path") #example_folder #D:\my_projects/media/labelme/example_folder/img1.json
@@ -474,7 +469,7 @@ def delete_label(request):
         input_img_name = request.POST.get("input_img_name") #img1.jpg
         deleted_label_id = request.POST.get("deleted_label_id") #要刪除label的id
         deleted_label_name = request.POST.get("deleted_label_name") #要刪除label的name
-        training_folder_name = request.POST.get("training_folder_name") #example_folder
+        training_folder_name = request.POST.get("training_folder_name").split("/")[0] #example_folder
         training_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}' #D:\my_projects/media/labelme/example_folder
 
         #查詢資料庫是否有這張input_img的紀錄
