@@ -181,7 +181,7 @@ def show_label_list(request, training_folder_name):
 
     page = request.GET.get('page', 1)
 
-    paginator = Paginator(input_img_labels, 11)
+    paginator = Paginator(input_img_labels, 20)
 
     try:
         labels_in_page = paginator.page(page)
@@ -195,15 +195,15 @@ def show_label_list(request, training_folder_name):
 def create_label(request):
     if request.method == "POST":
         username = request.POST.get("username")
-        #labelme_json_path = D:/my_labelme_project/Annotations/example_folder/img2.json
-        labelme_json_path = request.POST.get("labelme_json_path")
+        #labelme_json_path = D:/my_labelme_project/Annotations/example_folder/example_subfolder/img2.json
+        labelme_json_path = request.POST.get("labelme_json_path").replace('\r\n', "")
 
         #如果檔案存在且是一個檔案且附檔名是.json
         if osp.isfile(labelme_json_path) and labelme_json_path.endswith('.json'):
             #用剛剛的username查詢user_id
             user_id = Users.objects.get(username = username).id
 
-            training_folder_name = request.POST.get("training_folder_name").split("/")[0] #example_folder
+            training_folder_name = request.POST.get("training_folder_name").split("/")[0].replace('\n', "") #example_folder
 
             #labelme_json_path D:/my_labelme_project/Annotations/example_folder/img2.json
             data = json.load(open(labelme_json_path))
@@ -238,7 +238,7 @@ def create_label(request):
                 logger.warn(
                     '[Create] Create label failed. Because this input_img: [%s] does not exsit in DB' % (img_name)
                 )
-                return JsonResponse({'status': f'create label failed. Because this input_img: [{img_name}] does not exsit in DB'})                 
+                return JsonResponse({'status': f'create label failed. Because this input_img: [{img_name}] does not exsit in DB'})
             if not osp.exists(training_folder_path):
                 os.mkdir(training_folder_path)
 
@@ -312,6 +312,12 @@ def create_label(request):
             )
 
             return JsonResponse({'status': f'create label successfully. input_img_name: [{input_img_name}] has been create Label_name: [{label_names}]'})
+
+        #紀錄log
+        logger.warn(
+        '[Create] Create label failed. Because this labelme_json_path: [%s] does not exsit' % (labelme_json_path)
+        )
+        return JsonResponse({'status': f'create label failed. Because this labelme_json_path: [{labelme_json_path}] does not exsit'})
 
     return JsonResponse({})
 
