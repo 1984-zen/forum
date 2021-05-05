@@ -163,7 +163,7 @@ def update_training_txt(training_folder_name, training_folder_path):
                     for txt in training_txt:
                         #txt[0] = npy_path
                         #txt[1] = dictionary_id
-                        filepath.write(f'{txt[0].replace("labelme/example_folder/", "")} {txt[1]}' + '\n') #RegEx掉labelme/example_folder/之後把npys/.npy + dictionary_id寫進txt裡面
+                        filepath.write(f'{txt[0].replace(f"labelme/{training_folder_name}/", "")} {txt[1]}' + '\n') #RegEx掉labelme/example_folder/之後把npys/.npy + dictionary_id寫進txt裡面
 
 def labelme_url(request):
     return {'LABELME_URL': settings.LABELME_URL}
