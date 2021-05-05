@@ -55,7 +55,7 @@ def update_dictionary(data, training_folder_path, dictionary_path):
         if label_name not in dictionary.keys():
             #如果dictionary裡面沒有任何key values記錄
             if len(dictionary) == 0:
-                dictionary_id = 0
+                dictionary_id = 1
             #如果有紀錄
             else:
                 #抓取最大的value + 1
