@@ -73,7 +73,7 @@
                                         <td rowspan="{{ input_img_queryset.labels.all|length }}" style="width:1%; padding-left: 10pt; padding-right: 10pt; text-align: center;">{{ forloop.parentloop.parentloop.counter|add_multiply:page }}</td>
                                         {% endwith %}
                                         <td rowspan="{{ input_img_queryset.labels.all|length }}" style="text-align: center; width:30%; padding-left: 10pt; padding-right: 10pt;">
-                                            <a href='{{ LABELME_URL }}?collection=my_collection&mode=f&folder={{ training_folder_name }}/{{ input_img.grouper | replace_underscore }}&image={{ input_img.grouper }}&username={{ user_name }}' target=_blank>{{ input_img.grouper }}</a>
+                                            <a href='{{ LABELME_URL }}?collection=my_collection&mode=f&folder={{ training_folder_name }}{{ input_img.grouper | replace_underscore }}&image={{ input_img.grouper }}&username={{ user_name }}' target=_blank>{{ input_img.grouper }}</a>
                                         </td>
                                     {% endif %}
                                     {% if label.label_name %}
@@ -95,7 +95,7 @@
                                     <td rowspan="{{ input_img.list|length }}" style="width:1%; padding-left: 10pt; padding-right: 10pt; text-align: center;">{{ forloop.parentloop.counter|add_multiply:page }}</td>
                                     {% endwith %}
                                     <td rowspan="{{ input_img.list|length }}" style="text-align: center; width:30%; padding-left: 10pt; padding-right: 10pt;">
-                                        <a href='{{ LABELME_URL }}?collection=my_collection&mode=f&folder={{ training_folder_name }}/{{ input_img.grouper | replace_underscore }}&image={{ input_img.grouper }}&username={{ user_name }}' target=_blank>{{ input_img.grouper }}</a>
+                                        <a href='{{ LABELME_URL }}?collection=my_collection&mode=f&folder={{ training_folder_name }}{{ input_img.grouper | replace_underscore }}&image={{ input_img.grouper }}&username={{ user_name }}' target=_blank>{{ input_img.grouper }}</a>
                                     </td>
                                 {% endif %}
                                 <td></td>
