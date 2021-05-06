@@ -194,7 +194,7 @@ def show_label_list(request, training_folder_name):
 
 def create_label(request):
     if request.method == "POST":
-        username = request.POST.get("username")
+        username = request.POST.get("username").replace('\n', "")
         #labelme_json_path = D:/my_labelme_project/Annotations/example_folder/example_subfolder/img2.json
         labelme_json_path = request.POST.get("labelme_json_path").replace('\r\n', "")
 
@@ -210,7 +210,7 @@ def create_label(request):
 
             input_img_path = data['imagePath'] #此path為Labelme專案中/Images/example_folder/.jpg
 
-            input_img_name = osp.basename(input_img_path) #img1.jpg
+            input_img_name = request.POST.get("input_img_name").replace('\n', "") #img1.jpg
 
             img_name = input_img_name.replace('.jpg', '') #img1
 
@@ -322,15 +322,15 @@ def create_label(request):
 
 def update_label(request):
     if request.method == "POST":
-        username = request.POST.get("username")
-        input_img_name = request.POST.get("input_img_name") #img1.jpg
+        username = request.POST.get("username").replace('\n', "")
+        input_img_name = request.POST.get("input_img_name").replace('\n', "") #img1.jpg
         img_name = input_img_name.replace('.jpg', '') #img1
-        edited_label_id = request.POST.get("edited_label_id") #要Edited label的id
-        edited_label_name = request.POST.get("edited_label_name") #Edited label的name
-        training_folder_name = request.POST.get("training_folder_name").split("/")[0] #example_folder
+        edited_label_id = request.POST.get("edited_label_id").replace('\n', "") #要Edited label的id
+        edited_label_name = request.POST.get("edited_label_name").replace('\n', "") #Edited label的name
+        training_folder_name = request.POST.get("training_folder_name").split("/")[0].replace('\n', "") #example_folder
         #training model的根目錄路徑
         training_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}' #D:\my_projects/media/labelme/example_folder
-        labelme_json_path = request.POST.get("labelme_json_path") #example_folder #D:\my_projects/media/labelme/example_folder/img1.json
+        labelme_json_path = request.POST.get("labelme_json_path").replace('\r\n', "") #example_folder #D:\my_projects/media/labelme/example_folder/img1.json
         #通過labelme處理訓練後存放json檔的資料夾
         jsons_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}/jsons' #D:\my_projects/media/labelme/example_folder/jsons
         #label.png存放所在的資料夾路徑
@@ -471,10 +471,10 @@ def update_label(request):
 def delete_label(request):
     if request.method == "POST":
         #該label的原圖檔案名稱
-        input_img_name = request.POST.get("input_img_name") #img1.jpg
-        deleted_label_id = request.POST.get("deleted_label_id") #要刪除label的id
-        deleted_label_name = request.POST.get("deleted_label_name") #要刪除label的name
-        training_folder_name = request.POST.get("training_folder_name").split("/")[0] #example_folder
+        input_img_name = request.POST.get("input_img_name").replace('\n', "") #img1.jpg
+        deleted_label_id = request.POST.get("deleted_label_id").replace('\n', "") #要刪除label的id
+        deleted_label_name = request.POST.get("deleted_label_name").replace('\n', "") #要刪除label的name
+        training_folder_name = request.POST.get("training_folder_name").split("/")[0].replace('\n', "") #example_folder
         training_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}' #D:\my_projects/media/labelme/example_folder
 
         #查詢資料庫是否有這張input_img的紀錄
