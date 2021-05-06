@@ -236,9 +236,9 @@ def create_label(request):
             except Input_imgs.DoesNotExist:
                 #紀錄log
                 logger.warn(
-                    '[Create] Create label failed. Because this input_img: [%s] does not exsit in DB' % (img_name)
+                    '[Create] Create label failed. Because this input_img: [%s] does not exsit in DB' % (input_img_name)
                 )
-                return JsonResponse({'status': f'create label failed. Because this input_img: [{img_name}] does not exsit in DB'})
+                return JsonResponse({'status': f'create label failed. Because this input_img: [{input_img_name}] does not exsit in DB'})
             if not osp.exists(training_folder_path):
                 os.mkdir(training_folder_path)
 
