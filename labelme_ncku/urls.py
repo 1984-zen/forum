@@ -6,6 +6,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
        path('labelme', views.show_training_list, name = 'show_training_list'),
+       path('labelme/training_folder_name/<str:training_folder_name>/search', views.search, name = 'search'),
        path('labelme/training_folder_name/<str:training_folder_name>', views.show_label_list, name = 'show_label_list'),
        path('labelme/create_label', views.create_label, name = 'create_label'),
        path('labelme/update_label', views.update_label, name = 'update_label'),

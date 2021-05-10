@@ -22,6 +22,9 @@ from django.db.models.expressions import F, Window
 from django.db.models.functions.window import RowNumber
 from django.db.models.functions import Rank, DenseRank
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.db.models import Q
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 
 # np.set_printoptions(threshold=sys.maxsize, linewidth=sys.maxsize) #測試numpy的時候才需要打開註解，會將print()numpy array全部顯示
 #set logger
@@ -171,6 +174,27 @@ def labelme_url(request):
 def show_training_list(request):
     training_folder_list = Input_imgs.objects.values('training_folder_name').annotate(Count('id')).values_list('training_folder_name', flat = True)
     return TemplateResponse(request, 'show_training_list.html', {'training_folder_list': training_folder_list})
+
+def search(request, training_folder_name):
+    find_keyword = request.GET.get('keyword')
+
+    if not find_keyword:
+        return HttpResponseRedirect(reverse("show_label_list", kwargs={"training_folder_name": training_folder_name}))
+
+    filtered_label_list = Input_imgs.objects.filter(training_folder_name = training_folder_name).prefetch_related('labels').filter(Q(img_name__icontains=find_keyword))
+
+    page = request.GET.get('page', 1)
+
+    paginator = Paginator(filtered_label_list, 20)
+
+    try:
+        labels_in_page = paginator.page(page)
+    except PageNotAnInteger:
+        labels_in_page = paginator.page(1)
+    except EmptyPage:
+        labels_in_page = paginator.page(paginator.num_pages)
+
+    return TemplateResponse(request, 'show_label_list.html', {'input_img_labels': labels_in_page, 'training_folder_name': training_folder_name})
 
 def show_label_list(request, training_folder_name):
     #這個ids是避免template出現重複label_name用的，沒有用到。以'label_name', 'input_img_id'做分組並列出有大於等於1的結果，然後再取這些分組結果每組的最大id並攤平化 ids = <QuerySet [59, 60, 61, 63]>

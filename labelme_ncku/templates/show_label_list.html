@@ -5,7 +5,8 @@
     <meta charset="utf-8">
     {% load static %}
     {% load replace_underscore %}
-    {% load add_multiply%}
+    {% load add_multiply %}
+    {% load get_training_folder_name %}
     
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
     <title>LabelMe</title>
@@ -25,7 +26,10 @@
         <ol class="breadcrumb my-4">
             <li class="breadcrumb-item"><a href="{% url 'index' %}">Home</a></li>
             <li class="breadcrumb-item"><a href="{% url 'show_training_list' %}">LabelMe</a></li>
-            <li class="breadcrumb-item">{{ training_folder_name }}</li>
+            {% with training_folder_name=request.META.PATH_INFO|get_training_folder_name %}
+            <li class="breadcrumb-item"><a href="{% url 'show_label_list' training_folder_name=training_folder_name %}">{{ training_folder_name }}</a></li>
+            {% endwith %}
+            <li class="breadcrumb-item">{{ request.GET.keyword }}</li>
         </ol>
 
         {% if not user_name %}
@@ -36,6 +40,15 @@
         <h2>Hi! Wellcome {{ user_name|default:'Guest' }}</h2>
 
         <br>
+        
+        {% with training_folder_name=request.META.PATH_INFO|get_training_folder_name %}
+        <form role="search" method="get" id="searchform" action="{% url 'search' training_folder_name=training_folder_name %}?page={{ request.GET.page|default:1 }}">
+            <input type="search" name="keyword" placeholder="{{ request.GET.keyword|default:'搜尋' }}">
+            <button type="submit" class="btn btn-success">搜尋</button>
+        </form>
+        {% endwith %}
+        
+        <br><br>
 
         {% if input_img_labels.has_previous %}
         <button><a href="?page={{ input_img_labels.previous_page_number }}">previous_question</a></button>
