@@ -120,7 +120,16 @@
             </tbody>
         </table>
 
-        <div style="text-align: center;margin:1em 0">{{ input_img_labels.number }}/{{ input_img_labels.paginator.num_pages }}</div>
+        <div style="text-align: center;margin:1em 0">
+            {% with training_folder_name=request.META.PATH_INFO|get_training_folder_name %}
+            <form method="get" action="{% url 'show_label_list' training_folder_name=training_folder_name %}">
+                <input type="text" name="page" placeholder="請輸入頁數">
+                <button type="submit" class="btn btn-danger">跳頁</button>
+            </form>
+            {% endwith %}
+        </div>
+
+        <div style="text-align: center;margin:1em 0">第 {{ input_img_labels.number }}頁 / 總頁數 {{ input_img_labels.paginator.num_pages }}</div>
 
     </div> <!-- end here -->
 </body>

@@ -197,13 +197,18 @@ def search(request, training_folder_name):
     return TemplateResponse(request, 'show_label_list.html', {'input_img_labels': labels_in_page, 'training_folder_name': training_folder_name})
 
 def show_label_list(request, training_folder_name):
+    jump_page = request.GET.get('jump_page')
     #這個ids是避免template出現重複label_name用的，沒有用到。以'label_name', 'input_img_id'做分組並列出有大於等於1的結果，然後再取這些分組結果每組的最大id並攤平化 ids = <QuerySet [59, 60, 61, 63]>
     # ids = Labels.objects.values('label_name', 'input_img_id').annotate(Count('label_name')).filter(label_name__count__gte=1).annotate(Max('id')).values_list('id__max', flat = True)
 
     #Input_img 去 LEFT JOIN Labels
     input_img_labels = Input_imgs.objects.filter(training_folder_name = training_folder_name).prefetch_related('labels').all()
 
-    page = request.GET.get('page', 1)
+    if jump_page:
+
+        return HttpResponseRedirect(reverse('show_label_list', kwargs={"training_folder_name": training_folder_name}) + "?page=" + jump_page) #跳回到同一題
+    else:
+        page = request.GET.get('page', 1)
 
     paginator = Paginator(input_img_labels, 20)
 
@@ -327,12 +332,12 @@ def create_label(request):
                     )
 
             #重新抓取DB的"npy_path", "dictionary_id"資料並覆蓋到training.txt檔案
-            update_training_txt(training_folder_name, training_folder_path)
+            # update_training_txt(training_folder_name, training_folder_path)
 
-            #紀錄log
-            logger.info(
-                '[Create] Recorded to training.txt of [%s] training model successfully, file path: [%s/training.txt]' % (training_folder_name, training_folder_path)
-            )
+            # #紀錄log
+            # logger.info(
+            #     '[Create] Recorded to training.txt of [%s] training model successfully, file path: [%s/training.txt]' % (training_folder_name, training_folder_path)
+            # )
 
             return JsonResponse({'status': f'create label successfully. input_img_name: [{input_img_name}] has been create Label_name: [{label_names}]'})
 
@@ -465,12 +470,12 @@ def update_label(request):
                     )
 
                     #重新抓取DB的"npy_path", "dictionary_id"資料並覆蓋到training.txt檔案
-                    update_training_txt(training_folder_name, training_folder_path)
+                    # update_training_txt(training_folder_name, training_folder_path)
 
-                    #紀錄log
-                    logger.info(
-                    '[Edit] Recorded to training.txt of [%s] training model successfully, file path: [%s/training.txt]' % (training_folder_name, training_folder_path)
-                    )
+                    # #紀錄log
+                    # logger.info(
+                    # '[Edit] Recorded to training.txt of [%s] training model successfully, file path: [%s/training.txt]' % (training_folder_name, training_folder_path)
+                    # )
 
                 #紀錄log
                 logger.info(
@@ -548,12 +553,12 @@ def delete_label(request):
                 )
 
                 #重新抓取DB的"npy_path", "dictionary_id"資料並覆蓋到training.txt檔案
-                update_training_txt(training_folder_name, training_folder_path)
+                # update_training_txt(training_folder_name, training_folder_path)
 
-                #紀錄log
-                logger.info(
-                    '[Delete] Recorded to training.txt of [%s] training model successfully, file path: [%s/training.txt]' % (training_folder_name, training_folder_path)
-                )
+                # #紀錄log
+                # logger.info(
+                #     '[Delete] Recorded to training.txt of [%s] training model successfully, file path: [%s/training.txt]' % (training_folder_name, training_folder_path)
+                # )
 
             #如果有重複label_name就更新npy檔案，更新label_pic，因為同一個名子都會被合併成一個檔案
             elif is_duplicate_label_name:

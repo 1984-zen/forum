@@ -46,7 +46,7 @@
                 <tr>
                     <td style="width:1%; padding-left: 10pt; padding-right: 10pt; text-align: center;">{{ forloop.counter }}</td>
                     <td>
-                        <a href="{% url 'show_label_list' training_folder_name=training_name %}">{{ training_name }}</a>
+                        <a href="{% url 'show_label_list' training_folder_name=training_name %}?page=1">{{ training_name }}</a>
                     </td>
                 </tr>
                 {% endfor %}
