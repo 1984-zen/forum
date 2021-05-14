@@ -204,11 +204,14 @@ def show_training_list(request):
 
 def show_patient_list(request, training_folder_name):
     jump_page = request.GET.get('jump_page')
+    back_to_patient_current_page = request.GET.get('back_to_patient_current_page')
 
     patient_list = Input_imgs.objects.filter(training_folder_name = training_folder_name).values('patient_folder_name').annotate(Count('patient_folder_name')).filter(patient_folder_name__count__gte=1)
 
     if jump_page:
         return HttpResponseRedirect(reverse('show_patient_list', kwargs={"training_folder_name": training_folder_name}) + "?page=" + jump_page)
+    elif back_to_patient_current_page:
+        page = request.GET.get('back_to_patient_current_page')
     else:
         page = request.GET.get('page', 1)
 

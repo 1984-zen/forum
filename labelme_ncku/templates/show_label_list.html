@@ -26,7 +26,7 @@
             <li class="breadcrumb-item"><a href="{% url 'index' %}">Home</a></li>
             <li class="breadcrumb-item">LabelMe</li>
             <li class="breadcrumb-item"><a href="{% url 'show_training_list' %}">{{ training_folder_name }}</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'show_patient_list' training_folder_name=training_folder_name %}?page=1">病人總列表</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'show_patient_list' training_folder_name=training_folder_name %}?page={{ request.GET.back_to_patient_current_page|default:'1' }}">病人總列表</a></li>
             <li class="breadcrumb-item">您目前在病人單號 {{ patient_folder_name }}</li>
         </ol>
 
@@ -40,16 +40,14 @@
         <br>
 
         {% if input_img_labels.has_previous %}
-        <button>
-            <a href="?page={{ input_img_labels.previous_page_number }}">previous_page</a>
-        </button>
+        <button><a href="?page={{ input_img_labels.previous_page_number }}{% if request.GET.back_to_patient_current_page %}&back_to_patient_current_page={{ request.GET.back_to_patient_current_page }}{% endif %}">previous_page</a></button>
         {% else %}
         <button class="disabled"><span>previous_page</span></button>
         {% endif %}
 
         {% if input_img_labels.has_next %}
         <button style="float: right;">
-            <a href="?page={{ input_img_labels.next_page_number }}">next_page</a>
+            <a href="?page={{ input_img_labels.next_page_number }}{% if request.GET.back_to_patient_current_page %}&back_to_patient_current_page={{ request.GET.back_to_patient_current_page }}{% endif %}">next_page</a>
         </button>
         {% else %}
         <button style="float: right;" class="disabled"><span>next_page</span></button>
@@ -60,6 +58,7 @@
         <h3>病人單號 {{ patient_folder_name }}</h3>
 
         <form role="search" method="get" id="searchform" action="{% url 'show_patient_list' training_folder_name=training_folder_name %}">
+            <input type="hidden" name="page" value="{{ request.GET.back_to_patient_current_page|default:'1' }}">
             <button type="submit" class="btn btn-primary">【返回】病人總列表</button> 
         </form>
 
