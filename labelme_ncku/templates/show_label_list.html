@@ -6,7 +6,6 @@
     {% load static %}
     {% load replace_underscore %}
     {% load add_multiply %}
-    {% load get_training_folder_name %}
     
     <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
     <title>LabelMe</title>
@@ -25,11 +24,10 @@
 
         <ol class="breadcrumb my-4">
             <li class="breadcrumb-item"><a href="{% url 'index' %}">Home</a></li>
-            <li class="breadcrumb-item"><a href="{% url 'show_training_list' %}">LabelMe</a></li>
-            {% with training_folder_name=request.META.PATH_INFO|get_training_folder_name %}
-            <li class="breadcrumb-item"><a href="{% url 'show_label_list' training_folder_name=training_folder_name %}">{{ training_folder_name }}</a></li>
-            {% endwith %}
-            <li class="breadcrumb-item">{{ request.GET.keyword }}</li>
+            <li class="breadcrumb-item">LabelMe</li>
+            <li class="breadcrumb-item"><a href="{% url 'show_training_list' %}">{{ training_folder_name }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'show_patient_list' training_folder_name=training_folder_name %}?page=1">病人總列表</a></li>
+            <li class="breadcrumb-item">您目前在病人單號 {{ patient_folder_name }}</li>
         </ol>
 
         {% if not user_name %}
@@ -40,29 +38,32 @@
         <h2>Hi! Wellcome {{ user_name|default:'Guest' }}</h2>
 
         <br>
-        
-        {% with training_folder_name=request.META.PATH_INFO|get_training_folder_name %}
-        <form role="search" method="get" id="searchform" action="{% url 'search' training_folder_name=training_folder_name %}?page={{ request.GET.page|default:1 }}">
-            <input type="search" name="keyword" placeholder="{{ request.GET.keyword|default:'搜尋' }}">
-            <button type="submit" class="btn btn-success">搜尋</button>
-        </form>
-        {% endwith %}
-        
-        <br><br>
 
         {% if input_img_labels.has_previous %}
-        <button><a href="?page={{ input_img_labels.previous_page_number }}">previous_question</a></button>
+        <button>
+            <a href="?page={{ input_img_labels.previous_page_number }}">previous_page</a>
+        </button>
         {% else %}
-        <button class="disabled"><span>previous_question</span></button>
+        <button class="disabled"><span>previous_page</span></button>
         {% endif %}
 
         {% if input_img_labels.has_next %}
-        <button style="float: right;"><a href="?page={{ input_img_labels.next_page_number }}">next_page</a></button>
+        <button style="float: right;">
+            <a href="?page={{ input_img_labels.next_page_number }}">next_page</a>
+        </button>
         {% else %}
         <button style="float: right;" class="disabled"><span>next_page</span></button>
         {% endif %}
 
         <br><br>
+
+        <h3>病人單號 {{ patient_folder_name }}</h3>
+
+        <form role="search" method="get" id="searchform" action="{% url 'show_patient_list' training_folder_name=training_folder_name %}">
+            <button type="submit" class="btn btn-primary">【返回】病人總列表</button> 
+        </form>
+
+        <br>
 
         {% regroup input_img_labels by img_name as input_img_labels_by_img_name %}
 
@@ -121,12 +122,10 @@
         </table>
 
         <div style="text-align: center;margin:1em 0">
-            {% with training_folder_name=request.META.PATH_INFO|get_training_folder_name %}
-            <form method="get" action="{% url 'show_label_list' training_folder_name=training_folder_name %}">
-                <input type="text" name="page" placeholder="請輸入頁數">
+            <form method="get" action="{% url 'show_patient_labels' training_folder_name=training_folder_name patient_folder_name=patient_folder_name %}">
+                <input type="text" name="jump_page" placeholder="請輸入頁數">
                 <button type="submit" class="btn btn-danger">跳頁</button>
             </form>
-            {% endwith %}
         </div>
 
         <div style="text-align: center;margin:1em 0">第 {{ input_img_labels.number }}頁 / 總頁數 {{ input_img_labels.paginator.num_pages }}</div>

@@ -171,21 +171,21 @@ def update_training_txt(training_folder_name, training_folder_path):
 def labelme_url(request):
     return {'LABELME_URL': settings.LABELME_URL}
 
-def show_training_list(request):
-    training_folder_list = Input_imgs.objects.values('training_folder_name').annotate(Count('id')).values_list('training_folder_name', flat = True)
-    return TemplateResponse(request, 'show_training_list.html', {'training_folder_list': training_folder_list})
-
 def search(request, training_folder_name):
     find_keyword = request.GET.get('keyword')
+    jump_page = request.GET.get('jump_page')
 
     if not find_keyword:
-        return HttpResponseRedirect(reverse("show_label_list", kwargs={"training_folder_name": training_folder_name}))
+        return HttpResponseRedirect(reverse("show_patient_list", kwargs={"training_folder_name": training_folder_name}) + "?page=1")
 
-    filtered_label_list = Input_imgs.objects.filter(training_folder_name = training_folder_name).prefetch_related('labels').filter(Q(img_name__icontains=find_keyword))
+    filtered_patient_list = Input_imgs.objects.filter(training_folder_name = training_folder_name).filter(Q(patient_folder_name__icontains=find_keyword)).values('patient_folder_name').annotate(Count('patient_folder_name')).filter(patient_folder_name__count__gte=1)
 
-    page = request.GET.get('page', 1)
+    if jump_page:
+        return HttpResponseRedirect(reverse('search', kwargs={"training_folder_name": training_folder_name}) + "?page=" + jump_page + "&keyword=" + find_keyword)
+    else:
+        page = request.GET.get('page', 1)
 
-    paginator = Paginator(filtered_label_list, 20)
+    paginator = Paginator(filtered_patient_list, 20)
 
     try:
         labels_in_page = paginator.page(page)
@@ -194,19 +194,45 @@ def search(request, training_folder_name):
     except EmptyPage:
         labels_in_page = paginator.page(paginator.num_pages)
 
-    return TemplateResponse(request, 'show_label_list.html', {'input_img_labels': labels_in_page, 'training_folder_name': training_folder_name})
+    return TemplateResponse(request, 'show_patient_list.html', {'patient_list_in_page': labels_in_page, 'training_folder_name': training_folder_name})
 
-def show_label_list(request, training_folder_name):
+def show_training_list(request):
+    training_folder_list = Input_imgs.objects.values('training_folder_name').annotate(Count('id')).values_list('training_folder_name', flat = True)
+
+    return TemplateResponse(request, 'show_training_list.html', {'training_folder_list': training_folder_list})
+
+
+def show_patient_list(request, training_folder_name):
+    jump_page = request.GET.get('jump_page')
+
+    patient_list = Input_imgs.objects.filter(training_folder_name = training_folder_name).values('patient_folder_name').annotate(Count('patient_folder_name')).filter(patient_folder_name__count__gte=1)
+
+    if jump_page:
+        return HttpResponseRedirect(reverse('show_patient_list', kwargs={"training_folder_name": training_folder_name}) + "?page=" + jump_page)
+    else:
+        page = request.GET.get('page', 1)
+
+    paginator = Paginator(patient_list, 20)
+
+    try:
+        patient_list_in_page = paginator.page(page)
+    except PageNotAnInteger:
+        patient_list_in_page = paginator.page(1)
+    except EmptyPage:
+        patient_list_in_page = paginator.page(paginator.num_pages)
+
+    return TemplateResponse(request, 'show_patient_list.html', {'patient_list_in_page': patient_list_in_page, 'training_folder_name': training_folder_name})
+
+def show_patient_labels(request, training_folder_name, patient_folder_name):
     jump_page = request.GET.get('jump_page')
     #這個ids是避免template出現重複label_name用的，沒有用到。以'label_name', 'input_img_id'做分組並列出有大於等於1的結果，然後再取這些分組結果每組的最大id並攤平化 ids = <QuerySet [59, 60, 61, 63]>
     # ids = Labels.objects.values('label_name', 'input_img_id').annotate(Count('label_name')).filter(label_name__count__gte=1).annotate(Max('id')).values_list('id__max', flat = True)
 
     #Input_img 去 LEFT JOIN Labels
-    input_img_labels = Input_imgs.objects.filter(training_folder_name = training_folder_name).prefetch_related('labels').all()
+    input_img_labels = Input_imgs.objects.filter(training_folder_name = training_folder_name, patient_folder_name = patient_folder_name).prefetch_related('labels').all()
 
     if jump_page:
-
-        return HttpResponseRedirect(reverse('show_label_list', kwargs={"training_folder_name": training_folder_name}) + "?page=" + jump_page) #跳回到同一題
+        return HttpResponseRedirect(reverse('show_patient_labels', kwargs={"training_folder_name": training_folder_name, "patient_folder_name": patient_folder_name}) + "?page=" + jump_page)
     else:
         page = request.GET.get('page', 1)
 
@@ -219,7 +245,7 @@ def show_label_list(request, training_folder_name):
     except EmptyPage:
         labels_in_page = paginator.page(paginator.num_pages)
 
-    return TemplateResponse(request, 'show_label_list.html', {'input_img_labels': labels_in_page, 'training_folder_name': training_folder_name})
+    return TemplateResponse(request, 'show_label_list.html', {'input_img_labels': labels_in_page, 'training_folder_name': training_folder_name, 'patient_folder_name': patient_folder_name})
 
 def create_label(request):
     if request.method == "POST":

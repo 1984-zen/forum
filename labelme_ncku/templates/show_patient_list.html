@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    {% load static %}
+    {% load get_training_folder_name %}
+    {% load add_multiply %}
+
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}">
+    <title>LabelMe</title>
+</head>
+
+<body>
+    <div class="container">
+        <!-- start here -->
+        {% if messages %}
+        <div class="alert alert-warning" role="alert" style="text-align: center;">
+          {% for message in messages %}
+          {{ message }}
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        <ol class="breadcrumb my-4">
+            <li class="breadcrumb-item"><a href="{% url 'index' %}">Home</a></li>
+            <li class="breadcrumb-item">LabelMe</li>
+            <li class="breadcrumb-item"><a href="{% url 'show_training_list' %}">{{ training_folder_name }}</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'show_patient_list' training_folder_name=training_folder_name %}">病人總列表</a></li>
+        </ol>
+
+        {% if not user_name %}
+        <span>please <a href="{% url 'login' %}">login</a></span>
+        {% else %}
+        <span><a href="{% url 'logout' %}">log out</a></span>
+        {% endif %}
+        <h2>Hi! Wellcome {{ user_name|default:'Guest' }}</h2>
+    
+        <br>
+
+        <!-- 搜尋開始 -->
+        <!-- {% with training_folder_name=request.META.PATH_INFO|get_training_folder_name %} request.META.PATH_INFO 拿到uri = http://127.0.0.1:8000/labelme/training_folder_name/label_data_B_20210509/patients/160017K22099?page=1 -->
+        <form role="search" method="get" id="searchform" action="{% url 'search' training_folder_name=training_folder_name %}">
+            <input type="search" name="keyword" placeholder="{{ request.GET.keyword|default:'搜尋病人單號' }}">
+            <button type="submit" class="btn btn-success">搜尋病人單號</button>
+        </form>
+        <!-- {% endwith %} -->
+        <!-- 搜尋結束 -->
+
+        <br><br>
+
+        {% if patient_list_in_page.has_previous %}
+        <button><a href="?page={{ patient_list_in_page.previous_page_number }}{% if request.GET.keyword %}&keyword={{ request.GET.keyword }}{% endif %}">previous_page</a></button>
+        {% else %}
+        <button class="disabled"><span>previous_page</span></button>
+        {% endif %}
+
+        {% if patient_list_in_page.has_next %}
+        <button style="float: right;"><a href="?page={{ patient_list_in_page.next_page_number }}{% if request.GET.keyword %}&keyword={{ request.GET.keyword }}{% endif %}">next_page</a></button>
+        {% else %}
+        <button style="float: right;" class="disabled"><span>next_page</span></button>
+        {% endif %}
+
+        <br><br>
+
+        {% if request.GET.keyword %}
+        <h3>{{ request.GET.keyword }} 的搜尋結果:</h3>
+        <form role="search" method="get" id="searchform" action="{% url 'show_patient_list' training_folder_name=training_folder_name %}">
+            <button type="submit" class="btn btn-primary">【返回】病人總列表</button> 
+        </form>
+        <br>
+        {% else %}
+        <h3>病人總列表 - 第 {{ request.GET.page|default:'1' }} 頁</h3>
+        {% endif %}
+
+
+        <table style="width:100%;" border="1">
+            <thead>
+                <tr>
+                    <th style="width:1%; padding-left: 10pt; padding-right: 10pt; text-align: center;">SN</th>
+                    <th style="text-align: center;">Patient Number</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for patient in patient_list_in_page %}
+                <tr>
+                    {% with page=request.GET.page|default:'1' %}
+                    <td style="width:1%; padding-left: 10pt; padding-right: 10pt; text-align: center;">{{ forloop.counter|add_multiply:page }}</td>
+                    {% endwith %}
+                    <td>
+                        <a href="{% url 'show_patient_labels' training_folder_name=training_folder_name patient_folder_name=patient.patient_folder_name %}?page=1">{{ patient.patient_folder_name }}</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div style="text-align: center;margin:1em 0">
+            {% with training_folder_name=request.META.PATH_INFO|get_training_folder_name %}
+                {% if request.GET.keyword %}
+                <form method="get" action="{% url 'search' training_folder_name=training_folder_name %}">
+                    <input type="text" name="jump_page" placeholder="請輸入頁數">
+                    <input type="hidden" name="keyword" value="{{ request.GET.keyword }}">
+                    <button type="submit" class="btn btn-danger">跳頁</button>
+                {% else %}
+                <form method="get" action="{% url 'show_patient_list' training_folder_name=training_folder_name %}">
+                    <input type="text" name="jump_page" placeholder="請輸入頁數">
+                    <button type="submit" class="btn btn-danger">跳頁</button>
+                {% endif %}
+                </form>
+            {% endwith %}
+        </div>
+
+        <div style="text-align: center;margin:1em 0">第 {{ patient_list_in_page.number }}頁 / 總頁數 {{ patient_list_in_page.paginator.num_pages }}</div>
+
+
+    </div> <!-- end here -->
+</body>
+
+</html>
