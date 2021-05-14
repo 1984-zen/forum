@@ -26,6 +26,7 @@ from django.db.models import Q
 from django.http import HttpResponseRedirect
 from django.urls import reverse
 from django.db.models import Prefetch
+from django.http import HttpResponse
 
 # np.set_printoptions(threshold=sys.maxsize, linewidth=sys.maxsize) #測試numpy的時候才需要打開註解，會將print()numpy array全部顯示
 #set logger
@@ -158,16 +159,18 @@ def save_files(label_name_to_value, lbl, label_values, label_names, training_fol
         #儲存label_pic圖片，存在 例如:media/labelme/example_folder/label_images_set/img1/.png
         lblsave_white_mask(label_pic_path, label_numpy) #產生label_pic
 
-def update_training_txt(training_folder_name, training_folder_path):
-                training_folder_ids = Input_imgs.objects.filter(training_folder_name = training_folder_name).values_list("id", flat = True)
-                training_txt = Labels.objects.filter(input_img_id__in = training_folder_ids).values_list("npy_path", "dictionary_id")
+def update_training_txt(request, training_folder_name):
+    training_folder_ids = Input_imgs.objects.filter(training_folder_name = training_folder_name).values_list("id", flat = True)
+    training_txt = Labels.objects.filter(input_img_id__in = training_folder_ids).values_list("npy_path", "dictionary_id")
+    training_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}'
 
-                #從training_folder_path去寫入到training.txt檔案裏面
-                with open(osp.join(training_folder_path, 'training.txt'), 'w') as filepath:
-                    for txt in training_txt:
-                        #txt[0] = npy_path
-                        #txt[1] = dictionary_id
-                        filepath.write(f'{txt[0].replace(f"labelme/{training_folder_name}/", "")} {txt[1]}' + '\n') #RegEx掉labelme/example_folder/之後把npys/.npy + dictionary_id寫進txt裡面
+    #從training_folder_path去寫入到training.txt檔案裏面
+    with open(osp.join(training_folder_path, 'training.txt'), 'w') as filepath:
+        for txt in training_txt:
+            #txt[0] = npy_path
+            #txt[1] = dictionary_id
+            filepath.write(f'{txt[0].replace(f"labelme/{training_folder_name}/", "")} {txt[1]}' + '\n') #RegEx掉labelme/example_folder/之後把npys/.npy + dictionary_id寫進txt裡面
+    return HttpResponse("成功產生training.txt<br><a href=\"/labelme\">回到首頁</a>")
 
 def labelme_url(request):
     return {'LABELME_URL': settings.LABELME_URL}
@@ -204,6 +207,7 @@ def show_training_list(request):
 
 
 def show_patient_list(request, training_folder_name):
+    training_folder_path = f'{settings.BASE_DIR}/media/labelme/{training_folder_name}'
     jump_page = request.GET.get('jump_page')
     back_to_patient_current_page = request.GET.get('back_to_patient_current_page')
 
@@ -225,7 +229,7 @@ def show_patient_list(request, training_folder_name):
     except EmptyPage:
         patient_list_in_page = paginator.page(paginator.num_pages)
 
-    return TemplateResponse(request, 'show_patient_list.html', {'patient_list_in_page': patient_list_in_page, 'training_folder_name': training_folder_name})
+    return TemplateResponse(request, 'show_patient_list.html', {'patient_list_in_page': patient_list_in_page, 'training_folder_name': training_folder_name, 'training_folder_path': training_folder_path})
 
 def show_patient_labels(request, training_folder_name, patient_folder_name):
     jump_page = request.GET.get('jump_page')

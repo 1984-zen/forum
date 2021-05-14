@@ -122,7 +122,14 @@ class CheckUserAuthorizationMiddleware:
                 'success': True,
                 'redirect': reverse('show_exam_list')})
         ##########################################################labelMe
-        if (view_func.__name__ == "show_label_list"):
+        if (view_func.__name__ == "show_patient_list"):
+            if(is_admin): #如果具有admin身分
+                return None # 回傳None可以繼續往下一個middleware走
+            else: #如果不具有admin身分的話
+                messages.error(request, "you have no authority to access this router, please log in")
+                return HttpResponseRedirect(reverse("show_training_list"))
+        
+        if (view_func.__name__ == "show_patient_labels"):
             if(is_admin): #如果具有admin身分
                 return None # 回傳None可以繼續往下一個middleware走
             else: #如果不具有admin身分的話

@@ -12,5 +12,6 @@ urlpatterns = [
        path('labelme/create_label', views.create_label, name = 'create_label'),
        path('labelme/update_label', views.update_label, name = 'update_label'),
        path('labelme/delete_label', views.delete_label, name = 'delete_label'),
+       path('labelme/download/<str:training_folder_name>', views.update_training_txt, name = 'update_training_txt'),
 ]
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

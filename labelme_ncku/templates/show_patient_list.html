@@ -35,7 +35,9 @@
         <span><a href="{% url 'logout' %}">log out</a></span>
         {% endif %}
         <h2>Hi! Wellcome {{ user_name|default:'Guest' }}</h2>
-    
+
+        <span style="float: right;">(<a href="{% url 'update_training_txt' training_folder_name=training_folder_name %}">產生training.txt檔案</a>)</span>
+
         <br>
 
         <!-- 搜尋開始 -->
