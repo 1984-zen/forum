@@ -1,46 +1,177 @@
-# 安裝環境
-1. windows 10
+# 本安裝介紹有分 Docker / Windows
+# 如何在Docker安裝本專案
+### 1. 下載
+#### 1-1. [下載Django專案](https://github.com/1984-zen/forum.git)
+```
+cd到 { your_Django_專案資料夾 }
+```
+### 2. 建立Django_專案IMAGE
+```
+$ docker build -t my-django .
+```
+### 3. Docker創建network
+```
+$ docker network create --subnet=172.18.0.0/16 mynetwork
+```
+### 4. 下載Mariadb 的 IMAGE檔案
+```
+$ docker pull mariadb:10.4.18
+```
+### 5. 啟動mariadbrunner容器
+#### 5-1. 啟動mariadbrunner容器，同時設定資料庫的密碼
+```
+$ docker run --net mynetwork --ip 172.18.0.2 --name mariadbrunner -e MYSQL_ROOT_PASSWORD="{ your_database_password }" -d --restart unless-stopped mariadb:10.4.18
+```
+### 6. 建立資料庫
+#### 6-1 到mariadbrunner容器
+```
+$ docker exec -it mariadbrunner bash
+$ mysql -uroot -p
+# create database { your_database_name };
+```
+### 7. 建立LabelMe_專案IMAGE
+#### 7-1. [下載LabelMe專案](https://github.com/1984-zen/my_labelme_project.git)
+```
+$ docker build -t my-labelme .
+```
+### 8. 啟動labelme容器
+```
+$ docker run -p 7000:80 -v /var/www/html/LabelMeAnnotationTool/Annotations --name labelme -d --net mynetwork --ip 172.18.0.3 --restart unless-stopped my-labelme
+```
+### 9. 啟動django容器
+```
+$ docker run -p 9000:8000 -v /var/www/html/LabelMeAnnotationTool/Annotations --volumes-from labelme -v C:/example_folder:/code/media/labelme/example_folder --name django -d --net mynetwork --ip 172.18.0.4 --restart unless-stopped my-django
+```
+### 10. 設定settings
+### 10-1. 生成SECRET_KEY
+```
+$ python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
+```
+#### 10-2. 到django容器
+```
+$ docker exec -it django bash
+$ /code# cd code/ncku_project
+$ /code/ncku_project# cp settings.py.example settings.py
+$ /code/ncku_project# vim settings.py
+
+設定django的資料庫連線
+'NAME': '{ your_database_name }'
+'USER': 'root'
+'PASSWORD': '{ your_database_password }'
+'HOST': '172.18.0.2'
+'PORT': '3306'
+
+設定LABELME_URL = 'http://localhost:7000/LabelMeAnnotationTool/tool.html'
+USE_TZ由False暫時改為True
+
+貼上SECRET_KEY
+SECRET_KEY = '{ your_secret_key }'
+
+儲存並退出vim
+```
+#### 10-3. 資料庫migrate
+```
+$ /code# python manage.py migrate
+$ /code/ncku_project# vim settings.py
+USE_TZ改回False
+
+儲存並退出vim
+```
+
+### 11. 建立範例資料
+#### 11-1 到mariadbrunner容器
+```
+$ docker exec -it mariadbrunner bash
+$ mysql -uroot -p
+# use { your_database_name }
+# insert into labelme_ncku_input_imgs (img_name, training_folder_name, patient_folder_name, created_at) values("img1.jpg", "example_folder", "test01", now());
+# insert into labelme_ncku_input_imgs (img_name, training_folder_name, patient_folder_name, created_at) values("img2.jpg", "example_folder", "test01", now());
+# insert into labelme_ncku_input_imgs (img_name, training_folder_name, patient_folder_name, created_at) values("img3.jpg", "example_folder", "test01", now());
+```
+# 完成
+
+# 如何在Windows 10安裝本專案
+#### win 10 安裝環境
+1. windows 10 pro
 2. Anaconda3
 3. Python 3.8.3
 4. pip 19.2.3
-# Windows 環境下怎麼使用這個專案?
-1. 下載專案 https://github.com/1984-zen/forum/archive/dev.zip
-2. 打開anbaconda3 Powershell終端機
+5. MariaDB 10.4.14
+### 1. 下載
+#### 1-1. 下載專案 [下載Django專案](https://github.com/1984-zen/forum.git)
 ```
-> 到你的MySQL新增一個新 database 
-> cd 專案資料夾
-> 複製一份 settings.py.example 並rename為 settings.py
-> 用IDE編輯器打開settings.py修改DATABASES成為你的資料庫連線設定
-# 安裝此專案的相依套件
-> pip install -r requirements.txt
-# 生成SECRET_KEY
-> python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
-# 複製這串SECRET_KEY
-> 到IDE編輯器編輯settings.py的SECRET_KEY並貼上剛剛的KEY
-# 資料庫遷移指令
-> python ./manage.py makemigrations
+cd到 { your_Django_專案資料夾 }
+複製 { your_Django_專案資料夾 }\nckuh_project\settings.py.example 並將檔案重新命名為 settings.py
 ```
-### 注意1： 在使用 ./manage.py 之前需要確定你系统中的 python 命令是指向 python 3.6 及以上版本的。如果不是如此，請使用以下兩種方式中的一種：
-- 修改 manage.py 第一行 #!/usr/bin/env python 為 #!/usr/bin/env python3
-- 直接使用 python3 ./manage.py makemigrations 
-### 注意2：如果資料migrate的過程發生問題:
-- 試試看打開settings.py並編輯由USE_TZ = False改為True，結束migrate後再改回來
+### 2. 建立資料庫
+#### 2-1 到MySQL
 ```
-# 我們繼續資料庫遷移指令
-> python ./manage.py migrate
-> python ./manage.py runserver
+$ mysql -uroot -p
+# create database { your_database_name };
 ```
-### Optional 額外設定
+### 3. 生成SECRET_KEY
 ```
-EMAIL_BACKEND、EMAIL_HOST、EMAIL_PORT、EMAIL_HOST_USER、EMAIL_HOST_PASSWORD、EMAIL_USE_TLS、DEFAULT_FROM_EMAIL都是為了"忘記密碼"使用的，如果要使用必須要使用您的信箱設定，如果沒有要用就先刪掉他們
+$ python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
 ```
+### 4. 設定資料庫連線
+#### 4-1. 編輯settings.py
+```
+'NAME': '{ your_database_name }'
+'USER': 'root'
+'PASSWORD': '{ your_database_password }'
+'HOST': '127.0.0.1'
+'PORT': '3306'
 
-3. 開啟瀏覽器 訪問 127.0.0.1:8000/index
-#
-# 會員系統(Accounts system)
-## DEMO
+設定LABELME_URL = 'http://127.0.0.1:7000/LabelMe/tool.html'
+USE_TZ由False暫時改為True
+
+貼上SECRET_KEY
+SECRET_KEY = '{ your_secret_key }'
+```
+### 5. 資料庫migrate
+```
+cd到 { your_Django_專案資料夾 }
+$ python manage.py migrate
+
+USE_TZ改回False
+```
+### 4. pip安裝相依套件
+```
+cd到 { your_Django_專案資料夾 }
+$ pip install -r requirements.txt
+```
+### 注意： 在使用 ./manage.py 之前需要確定你系统中的 python 命令是指向 python 3.6 及以上版本的。如果不是如此，請使用以下兩種方式中的一種：
+1. 修改 { your_Django_專案資料夾 }\manage.py 第一行
+```
+#!/usr/bin/env python 為 #!/usr/bin/env python3
+```
+2. 直接使用 python3
+```
+python3 ./manage.py migrate
+```
+### 5. 建立範例資料
+#### 5-1 到MySQL
+```
+$ mysql -uroot -p
+# use { your_database_name }
+# insert into labelme_ncku_input_imgs (img_name, training_folder_name, patient_folder_name, created_at) values("img1.jpg", "example_folder", "test01", now());
+# insert into labelme_ncku_input_imgs (img_name, training_folder_name, patient_folder_name, created_at) values("img2.jpg", "example_folder", "test01", now());
+# insert into labelme_ncku_input_imgs (img_name, training_folder_name, patient_folder_name, created_at) values("img3.jpg", "example_folder", "test01", now());
+```
+#### 2. 啟動server
+```
+cd到 { your_Django_專案資料夾 }
+$ python ./manage.py runserver 9000
+```
+# 完成
+```
+開啟瀏覽器 訪問 127.0.0.1:9000/index
+```
+# 介紹
+### 會員系統(Accounts system)
+#### DEMO
 ![](https://github.com/1984-zen/forum/blob/dev/media/register_demo.gif)
-## 需求 & Story
+#### 需求 & Story
 - Story
     - 希望可以管理使用者
     - 此專案的重點在於「註冊」及 「登入」的功能（開發順位高）
@@ -79,10 +210,10 @@ EMAIL_BACKEND、EMAIL_HOST、EMAIL_PORT、EMAIL_HOST_USER、EMAIL_HOST_PASSWORD�
     </code></pre>   
     </details>
 #
-# 論壇網站(Forum web site)
-## DEMO
+### 論壇網站(Forum web site)
+#### DEMO
 ![](https://github.com/1984-zen/forum/blob/dev/media/forum_web_site_demo.gif)
-## 需求 & Story
+#### 需求 & Story
 - Story
     - 希望有可以互相分享檔案或文字資訊的的網頁平台
     - 純文字留言 + 上傳檔案 + 對文章做分類 + 對文章置頂
@@ -113,10 +244,10 @@ EMAIL_BACKEND、EMAIL_HOST、EMAIL_PORT、EMAIL_HOST_USER、EMAIL_HOST_PASSWORD�
     </code></pre>   
     </details>
 #
-# 線上測驗(Exams web site)
-## DEMO
+### 線上測驗(Exams web site)
+#### DEMO
 ![](https://github.com/1984-zen/forum/blob/dev/media/exams_web_site_demo.gif)
-## 需求 & Story
+#### 需求 & Story
 - Story
     - 將尚未分類的資料透過Exams平台用人力去逐一標註
     - 創建測驗(單選題) + 上傳影片 + 上傳照片 + 可以紀錄帳號在同一測驗下的所有測驗結果 + 下載該次測驗結果excel檔案 + 非線性答題(根據回答跳至相關題目)
