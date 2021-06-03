@@ -1,9 +1,9 @@
 # 本安裝介紹有分 Docker / Windows
 # 如何在Docker安裝本專案
 ### 1. 下載
-#### 1-1. [下載Django專案](https://github.com/1984-zen/forum.git)
+#### 1-1. [下載Django_專案](https://github.com/1984-zen/forum/archive/refs/heads/dev.zip)
 ```
-cd到 { your_Django_專案資料夾 }
+cd到 { Django_專案 } 資料夾
 ```
 ### 2. 建立Django_專案IMAGE
 ```
@@ -30,8 +30,9 @@ $ mysql -uroot -p
 # create database { your_database_name };
 ```
 ### 7. 建立LabelMe_專案IMAGE
-#### 7-1. [下載LabelMe專案](https://github.com/1984-zen/my_labelme_project.git)
+#### 7-1. [下載 LabelMe_專案](https://github.com/1984-zen/my_labelme_project.git)
 ```
+cd到 { LabelMe_專案 } 資料夾
 $ docker build -t my-labelme .
 ```
 ### 8. 啟動labelme容器
@@ -98,10 +99,12 @@ $ mysql -uroot -p
 4. pip 19.2.3
 5. MariaDB 10.4.14
 ### 1. 下載
-#### 1-1. 下載專案 [下載Django專案](https://github.com/1984-zen/forum.git)
+#### 1-1. [下載 LabelMe_專案](https://github.com/1984-zen/my_labelme_project.git)
+- 安裝LabelMe_專案請參考[README](https://github.com/1984-zen/my_labelme_project)說明
+#### 1-2. 下載專案 [下載Django專案](https://github.com/1984-zen/forum/archive/refs/heads/dev.zip)
 ```
-cd到 { your_Django_專案資料夾 }
-複製 { your_Django_專案資料夾 }\nckuh_project\settings.py.example 並將檔案重新命名為 settings.py
+cd到 { Django_專案 } 資料夾
+複製 { Django_專案 資料夾 }\nckuh_project\settings.py.example 並將檔案重新命名為 settings.py
 ```
 ### 2. 建立資料庫
 #### 2-1 到MySQL
@@ -109,6 +112,7 @@ cd到 { your_Django_專案資料夾 }
 $ mysql -uroot -p
 # create database { your_database_name };
 ```
+### 開始設定Django
 ### 3. 生成SECRET_KEY
 ```
 $ python -c 'from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())'
@@ -130,18 +134,18 @@ SECRET_KEY = '{ your_secret_key }'
 ```
 ### 5. 資料庫migrate
 ```
-cd到 { your_Django_專案資料夾 }
+cd到 { Django_專案 } 資料夾
 $ python manage.py migrate
 
 USE_TZ改回False
 ```
 ### 4. pip安裝相依套件
 ```
-cd到 { your_Django_專案資料夾 }
+cd到 { Django_專案 } 資料夾
 $ pip install -r requirements.txt
 ```
 ### 注意： 在使用 ./manage.py 之前需要確定你系统中的 python 命令是指向 python 3.6 及以上版本的。如果不是如此，請使用以下兩種方式中的一種：
-1. 修改 { your_Django_專案資料夾 }\manage.py 第一行
+1. 修改 { Django_專案 資料夾 }\manage.py 第一行
 ```
 #!/usr/bin/env python 為 #!/usr/bin/env python3
 ```
@@ -160,7 +164,7 @@ $ mysql -uroot -p
 ```
 #### 2. 啟動server
 ```
-cd到 { your_Django_專案資料夾 }
+cd到 { Django_專案 } 資料夾
 $ python ./manage.py runserver 9000
 ```
 # 完成
@@ -171,11 +175,7 @@ $ python ./manage.py runserver 9000
 ### 會員系統(Accounts system)
 #### DEMO
 ![](https://github.com/1984-zen/forum/blob/dev/media/register_demo.gif)
-#### 需求 & Story
-- Story
-    - 希望可以管理使用者
-    - 此專案的重點在於「註冊」及 「登入」的功能（開發順位高）
-    - 其餘需求是後面增加的（開發順位較低）
+#### 需求
 - 系統功能需求
     <details>
     <summary> 註冊部分需求 </summary>
@@ -213,12 +213,7 @@ $ python ./manage.py runserver 9000
 ### 論壇網站(Forum web site)
 #### DEMO
 ![](https://github.com/1984-zen/forum/blob/dev/media/forum_web_site_demo.gif)
-#### 需求 & Story
-- Story
-    - 希望有可以互相分享檔案或文字資訊的的網頁平台
-    - 純文字留言 + 上傳檔案 + 對文章做分類 + 對文章置頂
-    - 此專案的重點在於「留言」及 「上傳檔案」的功能（開發順位高）
-    - 其餘需求是後面增加的（開發順位較低）
+#### 需求
 - 系統功能需求
     <details>
     <summary> 未登入的使用者 </summary>
@@ -247,12 +242,8 @@ $ python ./manage.py runserver 9000
 ### 線上測驗(Exams web site)
 #### DEMO
 ![](https://github.com/1984-zen/forum/blob/dev/media/exams_web_site_demo.gif)
-#### 需求 & Story
-- Story
-    - 將尚未分類的資料透過Exams平台用人力去逐一標註
-    - 創建測驗(單選題) + 上傳影片 + 上傳照片 + 可以紀錄帳號在同一測驗下的所有測驗結果 + 下載該次測驗結果excel檔案 + 非線性答題(根據回答跳至相關題目)
-    - 此專案的重點在於「創建測驗」及 「上傳影片」及 「下載excel檔案」的功能（開發順位高）
-    - 其餘需求是後面增加的（開發順位較低）
+#### 需求
+- 系統功能需求
     <details>
     <summary> 未登入的使用者 </summary>
     <pre><code>
