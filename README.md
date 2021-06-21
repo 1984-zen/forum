@@ -174,13 +174,14 @@ $ python ./manage.py runserver 9000
 # 介紹
 ### 會員系統(Accounts system)
 #### DEMO
-![](https://github.com/1984-zen/forum/blob/dev/media/register_demo.gif)
+![](https://github.com/1984-zen/forum/blob/master/media/register_demo.gif)
 #### 需求
 - 系統功能需求
     <details>
     <summary> 註冊部分需求 </summary>
     <pre><code>
     - 會員註冊需要 Username(名字)、Account(E-mail)、Password(密碼)、Re_Password(確認密碼) 四個欄位
+    - 密碼儲存非明碼
     - 每個欄位經過驗證後送出，畫面會有訊息提示出錯不符合規則的欄位:
         - Account 不允許特殊符號、數字、英文字母以外的字元輸入
         - Password 不允許特殊符號、數字、英文字母以外的字元輸入 密碼長度4到10個字元 至少要有一個大寫或小寫的英文字母 至少要有一個0-9的數字
@@ -212,7 +213,7 @@ $ python ./manage.py runserver 9000
 #
 ### 論壇網站(Forum web site)
 #### DEMO
-![](https://github.com/1984-zen/forum/blob/dev/media/forum_web_site_demo.gif)
+![](https://github.com/1984-zen/forum/blob/master/media/forum_web_site_demo.gif)
 #### 需求
 - 系統功能需求
     <details>
@@ -241,7 +242,7 @@ $ python ./manage.py runserver 9000
 #
 ### 線上測驗(Exams web site)
 #### DEMO
-![](https://github.com/1984-zen/forum/blob/dev/media/exams_web_site_demo.gif)
+![](https://github.com/1984-zen/forum/blob/master/media/exams_web_site_demo.gif)
 #### 需求
 - 系統功能需求
     <details>
@@ -276,5 +277,22 @@ $ python ./manage.py runserver 9000
     - User已經回答過的選項會顯示已勾選，已送出的答案就不能再改
     - 測驗結果畫面可分為左半部為考生回答，右半部為選項的正確答案
     - 可以新增、修改即刪除測驗題目
+    </code></pre>   
+    </details>
+### 標註網站(Label web site)
+#### DEMO
+![](https://github.com/1984-zen/forum/blob/master/media/labelme_web_site_demo.gif)
+#### 需求
+- 系統功能需求
+    <details>
+    <summary> 未登入的使用者 </summary>
+    <pre><code>
+    - 只能看到project名稱
+    </code></pre>   
+    </details>
+    <details>
+    <summary> 已登入的使用者 </summary>
+    <pre><code>
+    - 可以進入label清單及標註 (label)
     </code></pre>   
     </details>
